@@ -4,9 +4,9 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/Tariomka/led-server/src/common"
-	"github.com/Tariomka/led-server/src/processor"
-	"github.com/Tariomka/led-server/test"
+	"github.com/Tariomka/desktop-led-controller/src/common"
+	"github.com/Tariomka/desktop-led-controller/src/processor"
+	"github.com/Tariomka/desktop-led-controller/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -41,8 +41,8 @@ func TestLedLayout(t *testing.T) {
 	ll.SetSingle(7, 7, 7, processor.Red)
 
 	// Assert
-	for layer := uint8(0); layer < 8; layer++ {
-		assert.Equal(t, expected[layer], ll.GetSlice(layer))
+	for index, value := range ll.IterateSlices() {
+		assert.Equal(t, expected[index], value)
 	}
 }
 
@@ -1554,30 +1554,30 @@ func TestLedLayout_ResetBlock(t *testing.T) {
 	}
 }
 
-func TestLedLayout_GetSlice(t *testing.T) {
-	t.Run("WhenInBounds", func(t *testing.T) {
-		// Arrange
-		layer := uint8(rand.Intn(8))
-		ll := &processor.LedLayout{}
-		ll[layer][uint8(rand.Intn(24))] = uint8(rand.Int())
-		ll[layer][uint8(rand.Intn(24))] = uint8(rand.Int())
-		ll[layer][uint8(rand.Intn(24))] = uint8(rand.Int())
+// func TestLedLayout_GetSlice(t *testing.T) {
+// 	t.Run("WhenInBounds", func(t *testing.T) {
+// 		// Arrange
+// 		layer := uint8(rand.Intn(8))
+// 		ll := &processor.LedLayout{}
+// 		ll[layer][uint8(rand.Intn(24))] = uint8(rand.Int())
+// 		ll[layer][uint8(rand.Intn(24))] = uint8(rand.Int())
+// 		ll[layer][uint8(rand.Intn(24))] = uint8(rand.Int())
 
-		// Act
-		actual := ll.GetSlice(layer)
+// 		// Act
+// 		actual := ll.GetSlice(layer)
 
-		// Assert
-		assert.Equal(t, ll[layer][:], actual)
-	})
+// 		// Assert
+// 		assert.Equal(t, ll[layer][:], actual)
+// 	})
 
-	t.Run("WhenOutOfBounds", func(t *testing.T) {
-		// Arrange
-		ll := &processor.LedLayout{}
+// 	t.Run("WhenOutOfBounds", func(t *testing.T) {
+// 		// Arrange
+// 		ll := &processor.LedLayout{}
 
-		// Act
-		actual := ll.GetSlice(uint8(8 + rand.Intn(247)))
+// 		// Act
+// 		actual := ll.GetSlice(uint8(8 + rand.Intn(247)))
 
-		// Assert
-		assert.Equal(t, []byte{}, actual)
-	})
-}
+// 		// Assert
+// 		assert.Equal(t, []byte{}, actual)
+// 	})
+// }
