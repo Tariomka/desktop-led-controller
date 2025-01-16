@@ -1,17 +1,28 @@
+BIN_DIR = bin
+ifdef OS
+	RM = del /s /q
+	EXE_NAME = desktop_app.exe
+else
+	RM = rm -rf
+	EXE_NAME = desktop_app
+endif
+
 run: build
-	@./bin/led_server
+	@./$(BIN_DIR)/$(EXE_NAME)
 
 build: create
-	@go build -o ./bin/led_server ./src/main.go
+	@echo Staring to build executable, please wait...
+	@go build -o ./$(BIN_DIR)/$(EXE_NAME) main.go
+	@echo Executable built successfully.
 
 create:
-	@mkdir -p bin
+	@if not exist $(BIN_DIR) mkdir $(BIN_DIR)
 
 clean:
-	@rm -rf bin
+	@$(RM) $(BIN_DIR)
 
-test_:
+tests:
 	@go test ./test/...
 
-test_v:
+tests_verbose:
 	@go test -v ./test/...
