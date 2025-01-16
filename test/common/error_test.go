@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/Tariomka/desktop-led-controller/src/common"
+	"github.com/Tariomka/desktop-led-controller/internal/common"
 	"github.com/stretchr/testify/assert"
 )
 

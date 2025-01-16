@@ -4,8 +4,8 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/Tariomka/desktop-led-controller/src/common"
-	"github.com/Tariomka/desktop-led-controller/src/processor"
+	"github.com/Tariomka/desktop-led-controller/internal/common"
+	"github.com/Tariomka/desktop-led-controller/internal/processor"
 	"github.com/Tariomka/desktop-led-controller/test"
 	"github.com/stretchr/testify/assert"
 )
