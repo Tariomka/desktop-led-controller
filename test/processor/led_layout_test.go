@@ -160,7 +160,7 @@ func TestLedLayout_ChangeSingle(t *testing.T) {
 			err := ll.ChangeSingle(x, y, z, processor.Color(uint8(rand.Intn(8))))
 
 			// Assert
-			assert.ErrorIs(t, err, common.OutOfBoundsError{})
+			assert.ErrorIs(t, err, common.ErrOutOfBounds)
 		}
 
 		test.Parametrize(testCase, testArgs)
@@ -307,7 +307,7 @@ func TestLedLayout_ChangeRowIndividual(t *testing.T) {
 			err := ll.ChangeRowIndividual(y, z, processor.Color(uint8(rand.Intn(8))), byte(rand.Int()))
 
 			// Assert
-			assert.ErrorIs(t, err, common.OutOfBoundsError{})
+			assert.ErrorIs(t, err, common.ErrOutOfBounds)
 		}
 
 		test.Parametrize(testCase, testArgs)
@@ -453,7 +453,7 @@ func TestLedLayout_ChangeRow(t *testing.T) {
 			err := ll.ChangeRow(y, z, processor.Color(uint8(rand.Intn(8))))
 
 			// Assert
-			assert.ErrorIs(t, err, common.OutOfBoundsError{})
+			assert.ErrorIs(t, err, common.ErrOutOfBounds)
 		}
 
 		test.Parametrize(testCase, testArgs)
@@ -584,7 +584,7 @@ func TestLedLayout_ChangeLayer(t *testing.T) {
 		err := ll.ChangeLayer(69, processor.Color(uint8(rand.Intn(8))))
 
 		// Assert
-		assert.ErrorIs(t, err, common.OutOfBoundsError{})
+		assert.ErrorIs(t, err, common.ErrOutOfBounds)
 	})
 
 	t.Run("WhenInBoundsAndColorIsNotPredefined", func(t *testing.T) {
@@ -820,7 +820,7 @@ func TestLedLayout_SetSingle(t *testing.T) {
 			err := ll.SetSingle(x, y, z, processor.Color(uint8(rand.Intn(8))))
 
 			// Assert
-			assert.ErrorIs(t, err, common.OutOfBoundsError{})
+			assert.ErrorIs(t, err, common.ErrOutOfBounds)
 		}
 
 		test.Parametrize(testCase, testArgs)
@@ -946,7 +946,7 @@ func TestLedLayout_SetRowIndividual(t *testing.T) {
 			err := ll.SetRowIndividual(y, z, processor.Color(uint8(rand.Intn(8))), uint8(rand.Int()))
 
 			// Assert
-			assert.ErrorIs(t, err, common.OutOfBoundsError{})
+			assert.ErrorIs(t, err, common.ErrOutOfBounds)
 		}
 
 		test.Parametrize(testCase, testArgs)
@@ -1070,7 +1070,7 @@ func TestLedLayout_SetRow(t *testing.T) {
 			err := ll.SetRow(y, z, processor.Color(uint8(rand.Intn(8))))
 
 			// Assert
-			assert.ErrorIs(t, err, common.OutOfBoundsError{})
+			assert.ErrorIs(t, err, common.ErrOutOfBounds)
 		}
 
 		test.Parametrize(testCase, testArgs)
@@ -1181,7 +1181,7 @@ func TestLedLayout_SetLayer(t *testing.T) {
 		err := ll.SetLayer(69, processor.Color(uint8(rand.Intn(8))))
 
 		// Assert
-		assert.ErrorIs(t, err, common.OutOfBoundsError{})
+		assert.ErrorIs(t, err, common.ErrOutOfBounds)
 	})
 
 	t.Run("WhenInBoundsAndColorIsNotPredefined", func(t *testing.T) {
@@ -1338,7 +1338,7 @@ func TestLedLayout_ResetSingle(t *testing.T) {
 			err := ll.ResetSingle(x, y, z)
 
 			// Assert
-			assert.ErrorIs(t, err, common.OutOfBoundsError{})
+			assert.ErrorIs(t, err, common.ErrOutOfBounds)
 		}
 
 		test.Parametrize(testCase, testArgs)
@@ -1408,7 +1408,7 @@ func TestLedLayout_ResetRowIndividual(t *testing.T) {
 			err := ll.ResetSingle(x, y, z)
 
 			// Assert
-			assert.ErrorIs(t, err, common.OutOfBoundsError{})
+			assert.ErrorIs(t, err, common.ErrOutOfBounds)
 		}
 
 		test.Parametrize(testCase, testArgs)
@@ -1478,7 +1478,7 @@ func TestLedLayout_ResetRow(t *testing.T) {
 			err := ll.ResetSingle(x, y, z)
 
 			// Assert
-			assert.ErrorIs(t, err, common.OutOfBoundsError{})
+			assert.ErrorIs(t, err, common.ErrOutOfBounds)
 		}
 
 		test.Parametrize(testCase, testArgs)
@@ -1534,7 +1534,7 @@ func TestLedLayout_ResetLayer(t *testing.T) {
 		err := ll.ResetLayer(uint8(8 + rand.Intn(247)))
 
 		// Assert
-		assert.ErrorIs(t, err, common.OutOfBoundsError{})
+		assert.ErrorIs(t, err, common.ErrOutOfBounds)
 	})
 }
 

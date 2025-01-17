@@ -3,7 +3,7 @@ package processor
 import (
 	"iter"
 
-	"github.com/Tariomka/desktop-led-controller/internal/common"
+	"github.com/Tariomka/desktop-led-controller/rpi_placeholder/internal/common"
 )
 
 type Color uint8
