@@ -43,12 +43,10 @@ type LogHandler struct {
 	buffer  *bytes.Buffer
 	mutex   *sync.Mutex
 	print   func(message string)
-	// print   func(a ...any) (n int, err error)
 }
 
 func NewLogHandler(
 	printCallback func(message string),
-	// printCallback func(a ...any) (n int, err error),
 	opts *slog.HandlerOptions,
 ) slog.Handler {
 	if opts == nil {
