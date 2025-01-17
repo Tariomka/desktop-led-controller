@@ -3,7 +3,7 @@ package tcp
 import (
 	"fmt"
 
-	"github.com/Tariomka/desktop-led-controller/rpi_placeholder/internal/common"
+	"github.com/Tariomka/desktop-led-controller/internal/common"
 )
 
 type DataType byte

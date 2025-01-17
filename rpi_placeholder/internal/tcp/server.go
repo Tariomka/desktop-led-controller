@@ -3,26 +3,40 @@ package tcp
 import (
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net"
 	"sync"
-	"time"
 )
+
+type ServerConfig struct {
+	Address        string
+	MaxConnections uint8
+}
+
+func NewConfig() ServerConfig {
+	return ServerConfig{
+		Address:        ":42069",
+		MaxConnections: 4,
+	}
+}
 
 type Server interface {
 	Start()
 	Stop()
+	Send(message string)
 }
 
 type LedServer struct {
 	listener  net.Listener
 	waitGroup *sync.WaitGroup
 	conns     map[*Connection]bool
+	maxConns  uint8
 	mutex     sync.RWMutex
+	logger    *slog.Logger
 }
 
-func NewServer(port uint16) (Server, error) {
-	listener, err := net.Listen("tcp", fmt.Sprint(":", port))
+func NewServer(config ServerConfig) (Server, error) {
+	listener, err := net.Listen("tcp", config.Address)
 	if err != nil {
 		return nil, err
 	}
@@ -30,29 +44,37 @@ func NewServer(port uint16) (Server, error) {
 	return &LedServer{
 		listener:  listener,
 		waitGroup: &sync.WaitGroup{},
-		conns:     make(map[*Connection]bool, 4),
+		conns:     make(map[*Connection]bool, config.MaxConnections),
+		maxConns:  config.MaxConnections,
 		mutex:     sync.RWMutex{},
+		logger: slog.New(NewLogHandler(
+			func(message string) { fmt.Println(message) },
+			&slog.HandlerOptions{Level: slog.LevelDebug})),
 	}, nil
 }
 
 func (ls *LedServer) Start() {
+	ls.logger.Debug("Starting up server")
+	fmt.Println()
 	for {
 		connection, err := ls.listener.Accept()
 		if err != nil {
-			log.Printf("failed to accept connection: %v\n", err)
+			ls.logger.Error("failed to accept connection:", "error", err)
 			break
 		}
 
 		var connWrapper *Connection
-		if len(ls.conns) > 3 {
-			log.Printf("too many connections, can't add '%v'\n", connection)
+		if len(ls.conns) >= int(ls.maxConns) {
+			ls.logger.Warn("can't accept any new connections, because of limited capacity", "connection", connection.LocalAddr())
+			connection.Close()
 			continue
 		}
 		ls.withLock(func() {
 			connWrapper = NewConnection(connection, ls.waitGroup)
 			ls.conns[connWrapper] = true
-			log.Printf("new connection aquired: %v\n", connWrapper)
-			log.Printf("current capacity: %d\n", len(ls.conns))
+			ls.logger.Debug("new connection aquired:",
+				"connection", connWrapper.connection.RemoteAddr(),
+				"current capacity", len(ls.conns))
 		})
 
 		go ls.receive(connWrapper)
@@ -78,15 +100,17 @@ func (ls *LedServer) receive(connection *Connection) {
 		if err != nil {
 			switch err {
 			case io.EOF:
-				log.Printf("user disconnected: %v\n", connection)
+				ls.logger.Info("user disconnected:", "connection", connection.connection.RemoteAddr())
 			default:
-				log.Printf("failed to read data from connection: %v\n", err)
+				ls.logger.Error("failed to read data from connection:", "error", err)
 			}
 			break
 		}
 
-		packet.Marshall()
-		// log.Printf("received data: %v\n", packet)
+		ls.logger.Debug("received data:",
+			"version", packet.Version,
+			"type", packet.Type,
+			"data", string(packet.Data))
 	}
 }
 
@@ -99,8 +123,7 @@ func (ls *LedServer) broadcast(packet Packet) {
 }
 
 func (ls *LedServer) removeConnection(conn *Connection) {
-	// incorrect indexes when multiple connections are added and removed
-	log.Printf("removing connection: %v\n", conn)
+	ls.logger.Info("removing connection:", "connection", conn.connection.LocalAddr())
 	conn.Close()
 	ls.withLock(func() { delete(ls.conns, conn) })
 }
@@ -110,39 +133,4 @@ func (ls *LedServer) withLock(callback func()) {
 	defer ls.mutex.Unlock()
 
 	callback()
-}
-
-type LedClient struct {
-	address string
-}
-
-func NewClient() *LedClient {
-	return &LedClient{
-		address: ":42069",
-	}
-}
-
-func (lc *LedClient) Start(data []byte) {
-	connection, err := net.Dial("tcp", lc.address)
-	// add retry policy
-	if err != nil {
-		log.Fatal(err) // change to printf
-	}
-	defer connection.Close()
-
-	payload := make([]byte, 0, 1+1+len(data))
-	payload = append(payload, 1, 0)
-	payload = append(payload, data...)
-
-	var n int
-	for i := 0; i < 3; i++ {
-		n, err = connection.Write(payload)
-		time.Sleep(1 * time.Second)
-	}
-
-	if err != nil {
-		log.Printf("client error: %v\n", err)
-	}
-
-	log.Printf("client sent %d bytes, content: %s\n", n, payload)
 }

@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	server, err := tcp.NewServer(42069)
+	server, err := tcp.NewServer(tcp.NewConfig())
 	if err != nil {
 		log.Fatalf("failed to start server: %v\n", err)
 	}
