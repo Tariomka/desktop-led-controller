@@ -3,6 +3,7 @@ module github.com/Tariomka/desktop-led-controller
 go 1.23.4
 
 require (
+	github.com/gen2brain/raylib-go/raygui v0.0.0-20250109172833-6dbba4f81a9b
 	github.com/gen2brain/raylib-go/raylib v0.0.0-20250109172833-6dbba4f81a9b
 	github.com/stretchr/testify v1.10.0
 )

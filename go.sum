@@ -2,6 +2,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/ebitengine/purego v0.8.2 h1:jPPGWs2sZ1UgOSgD2bClL0MJIqu58nOmIcBuXr62z1I=
 github.com/ebitengine/purego v0.8.2/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
+github.com/gen2brain/raylib-go/raygui v0.0.0-20250109172833-6dbba4f81a9b h1:kyotn5/LDKyuRHZlR33ItQuhyvsOoJopvdAn+QmaouM=
+github.com/gen2brain/raylib-go/raygui v0.0.0-20250109172833-6dbba4f81a9b/go.mod h1:Ji/uPEko2AUkcyPLAelEUa+E8Npc89/XY5Fo/lS/e3I=
 github.com/gen2brain/raylib-go/raylib v0.0.0-20250109172833-6dbba4f81a9b h1:JJfspevP3YOXcSKVABizYOv++yMpTJIdPUtoDzF/RWw=
 github.com/gen2brain/raylib-go/raylib v0.0.0-20250109172833-6dbba4f81a9b/go.mod h1:BaY76bZk7nw1/kVOSQObPY1v1iwVE1KHAGMfvI6oK1Q=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=

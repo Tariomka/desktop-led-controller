@@ -7,6 +7,6 @@
 6. Raylib: [installation instructions](https://github.com/gen2brain/raylib-go/blob/master/README.md)
  - Prerequisits:
    - For Windows:
-     - C Compiler, e.g.:
-    > winget install --id=Microsoft.VisualStudio.2022.BuildTools -e
-     - raylib.dll
+     - C compiler for both raylib and cgo: [download link](https://jmeubank.github.io/tdm-gcc/)
+     - Add C compiler to PATH variable for example:
+     > C:\TDM-GCC-64\bin
