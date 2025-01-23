@@ -18,7 +18,7 @@ run_no_build:
 
 build: create
 	@echo Staring to build executable, please wait...
-	@go build -o ./$(BIN_DIR)/$(EXE_NAME) main.go
+	@go build -o ./$(BIN_DIR)/$(EXE_NAME) -ldflags "-H=windowsgui" main.go
 	@echo Executable built successfully.
 
 copy_raylib: create
