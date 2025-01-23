@@ -21,6 +21,7 @@ func NewConnection(connection net.Conn, waitGroup *sync.WaitGroup) *Connection {
 
 func (c *Connection) ReadPacket() (*Packet, error) {
 	// Add multiple packet reading?
+	// read with buffer? how current implementation reads multiple packets?
 	buffer := make([]byte, 1024)
 	_, err := c.connection.Read(buffer)
 	if err != nil {
