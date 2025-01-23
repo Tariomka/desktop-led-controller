@@ -4,15 +4,6 @@ import "github.com/Tariomka/desktop-led-controller/internal/ui"
 
 // import (
 // 	"fmt"
-// 	"math"
-
-// 	"github.com/gen2brain/raylib-go/raygui"
-// 	rl "github.com/gen2brain/raylib-go/raylib"
-// )
-
-// import (
-// 	"fmt"
-// 	"time"
 
 // 	"github.com/Tariomka/desktop-led-controller/internal/tcp"
 // )

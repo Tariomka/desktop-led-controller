@@ -13,7 +13,7 @@ type Cube struct {
 }
 
 type CubeGrid struct {
-	cubes [][][]Cube
+	cubes [][][]*Cube
 	size  raylib.Vector3
 }
 
@@ -22,13 +22,13 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) *CubeGrid {
 	sizeY := 1 + size.Y
 	sizeZ := 1 + size.Z
 
-	grid := make([][][]Cube, zCount)
+	grid := make([][][]*Cube, zCount)
 	for z := range grid {
-		grid[z] = make([][]Cube, yCount)
+		grid[z] = make([][]*Cube, yCount)
 		for y := range grid[z] {
-			grid[z][y] = make([]Cube, xCount)
+			grid[z][y] = make([]*Cube, xCount)
 			for x := range grid[z][y] {
-				grid[z][y][x] = Cube{
+				grid[z][y][x] = &Cube{
 					// this is not a mistake. 'y' and 'z' are switched
 					// to keep the same perspecive as on the physical cube
 					pos: raylib.NewVector3(
@@ -53,8 +53,8 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) *CubeGrid {
 	}
 }
 
-func (cg *CubeGrid) IterateCubes() iter.Seq[Cube] {
-	return func(yield func(Cube) bool) {
+func (cg *CubeGrid) IterateCubes() iter.Seq[*Cube] {
+	return func(yield func(*Cube) bool) {
 		for _, z := range cg.cubes {
 			for _, y := range z {
 				for _, cube := range y {
