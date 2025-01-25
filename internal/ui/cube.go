@@ -36,7 +36,7 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) *CubeGrid {
 						sizeZ*float32(z),
 						sizeY*float32(y),
 					),
-					color: raylib.Gray,
+					color: raylib.Blank,
 				}
 			}
 		}

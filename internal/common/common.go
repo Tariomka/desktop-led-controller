@@ -26,7 +26,7 @@ func IntToRGBA(value int64) color.RGBA {
 	}
 }
 
-func IntToRGBAWithAlpha(value int64, alpha uint8) color.RGBA {
+func IntToRGBAEx(value int64, alpha uint8) color.RGBA {
 	base := IntToRGBA(value)
 	base.A = alpha
 	return base

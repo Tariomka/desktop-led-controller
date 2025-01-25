@@ -65,12 +65,14 @@ func NewWindow(configFuncs ...WindowConfigFunc) *Window {
 }
 
 func (w *Window) Start() {
+	raylib.SetConfigFlags(raylib.FlagWindowResizable)
 	raylib.InitWindow(w.width, w.height, "Led Cube Controller")
 	raylib.SetTargetFPS(60)
 	w.hud = NewPanelControler()
 
 	for !windowShouldClose {
 		windowShouldClose = raylib.WindowShouldClose()
+
 		w.updateCamera()
 		w.updateCubes()
 		w.hud.Update()
@@ -98,7 +100,9 @@ func (w *Window) updateCubes() {
 	if raylib.IsMouseButtonPressed(raylib.MouseLeftButton) {
 		w.ray = raylib.GetScreenToWorldRay(raylib.GetMousePosition(), *w.camera)
 
+		// TODO: add single slice iterating when slicing in editor panel is created
 		for cube := range w.cubeGrid.IterateCubes() {
+			// This hits multiple cubes, need to think on how to handle only a single collision
 			w.collision = raylib.GetRayCollisionBox(
 				w.ray,
 				raylib.NewBoundingBox(
