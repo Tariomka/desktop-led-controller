@@ -3,7 +3,6 @@ package ui
 import (
 	"image/color"
 
-	"github.com/gen2brain/raylib-go/raygui"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -69,8 +68,6 @@ func (w *Window) Start() {
 	raylib.InitWindow(w.width, w.height, "Led Cube Controller")
 	raylib.SetTargetFPS(60)
 	w.hud = NewPanelControler()
-	raygui.SetStyle(0, raygui.BACKGROUND_COLOR, 0x2d2d2dff)
-	raylib.SetExitKey(0)
 
 	for !windowShouldClose {
 		windowShouldClose = raylib.WindowShouldClose()
