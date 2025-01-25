@@ -21,7 +21,8 @@ import "github.com/Tariomka/desktop-led-controller/internal/ui"
 // }
 
 func main() {
-	window := ui.NewWindow(ui.NewConfig())
-	window.Start()
-	defer window.Stop()
+	if window := ui.NewWindow(); window != nil {
+		window.Start()
+		defer window.Stop()
+	}
 }

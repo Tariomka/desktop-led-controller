@@ -1,5 +1,6 @@
 BIN_DIR = bin
 RAYLIB = raylib.dll
+BUILD_FLAGS = -ldflags "-H=windowsgui"
 ifdef OS
 	RM = del /s /q
 	CP = copy
@@ -18,7 +19,7 @@ run_no_build:
 
 build: create
 	@echo Staring to build executable, please wait...
-	@go build -o ./$(BIN_DIR)/$(EXE_NAME) -ldflags "-H=windowsgui" main.go
+	@go build -o ./$(BIN_DIR)/$(EXE_NAME) $(BUILD_FLAGS) main.go
 	@echo Executable built successfully.
 
 copy_raylib: create

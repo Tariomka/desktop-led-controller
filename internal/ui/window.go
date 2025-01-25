@@ -7,12 +7,18 @@ import (
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
+var (
+	windowShouldClose bool
+)
+
+type WindowConfigFunc func(*WindowConfig)
+
 type WindowConfig struct {
 	windowWidth, windowHeight int32
 	cubeBaseSize, cubeHeight  uint8
 }
 
-func NewConfig() WindowConfig {
+func defaultConfig() WindowConfig {
 	return WindowConfig{
 		windowWidth:  1280,
 		windowHeight: 720,
@@ -25,7 +31,7 @@ type Window struct {
 	width, height int32
 
 	camera *raylib.Camera
-	panels []Panel
+	hud    Element
 
 	cubeGrid      *CubeGrid
 	selectedColor color.RGBA
@@ -34,12 +40,10 @@ type Window struct {
 	collision raylib.RayCollision
 }
 
-func NewWindow(config WindowConfig) *Window {
-	if config.windowWidth == 0 {
-		config.windowWidth = 1280
-	}
-	if config.windowHeight == 0 {
-		config.windowHeight = 720
+func NewWindow(configFuncs ...WindowConfigFunc) *Window {
+	config := defaultConfig()
+	for _, callback := range configFuncs {
+		callback(&config)
 	}
 
 	return &Window{
@@ -52,7 +56,6 @@ func NewWindow(config WindowConfig) *Window {
 			Fovy:       55.0,
 			Projection: raylib.CameraPerspective,
 		},
-		panels: make([]Panel, 0),
 		cubeGrid: NewCubeGrid(
 			config.cubeBaseSize,
 			config.cubeBaseSize,
@@ -65,16 +68,20 @@ func NewWindow(config WindowConfig) *Window {
 func (w *Window) Start() {
 	raylib.InitWindow(w.width, w.height, "Led Cube Controller")
 	raylib.SetTargetFPS(60)
+	w.hud = NewPanelControler()
 	raygui.SetStyle(0, raygui.BACKGROUND_COLOR, 0x2d2d2dff)
-	w.setPanels()
+	raylib.SetExitKey(0)
 
-	for !raylib.WindowShouldClose() {
-		w.update()
+	for !windowShouldClose {
+		windowShouldClose = raylib.WindowShouldClose()
+		w.updateCamera()
+		w.updateCubes()
+		w.hud.Update()
 
 		raylib.BeginDrawing()
 
 		w.render3D()
-		w.renderUI()
+		w.hud.Render()
 
 		raylib.EndDrawing()
 	}
@@ -82,21 +89,6 @@ func (w *Window) Start() {
 
 func (w *Window) Stop() {
 	raylib.CloseWindow()
-}
-
-func (w *Window) setPanels() {
-	panelWidth := float32(w.width) / 5
-	menu := NewPanel[MenuPanel](
-		raylib.NewVector2(float32(w.width)-panelWidth, 0),
-		panelWidth,
-		float32(w.height))
-	w.panels = append(w.panels, menu)
-}
-
-func (w *Window) update() {
-	w.updateCamera()
-	w.updateCubes()
-	w.updatePanels()
 }
 
 func (w *Window) updateCamera() {
@@ -130,12 +122,6 @@ func (w *Window) updateCubes() {
 	}
 }
 
-func (w *Window) updatePanels() {
-	for _, panel := range w.panels {
-		panel.Update()
-	}
-}
-
 func (w *Window) render3D() {
 	raylib.ClearBackground(raylib.DarkGray)
 	raylib.BeginMode3D(*w.camera)
@@ -146,10 +132,4 @@ func (w *Window) render3D() {
 	}
 
 	raylib.EndMode3D()
-}
-
-func (w *Window) renderUI() {
-	for _, panel := range w.panels {
-		panel.Render()
-	}
 }
