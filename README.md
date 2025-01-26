@@ -10,3 +10,7 @@
      - C compiler for both raylib and cgo: [download link](https://jmeubank.github.io/tdm-gcc/)
      - Add C compiler to PATH variable for example:
      > C:\TDM-GCC-64\bin
+
+# Progress
+
+![Work in progress](/docs/work%20in%20progress.png)
