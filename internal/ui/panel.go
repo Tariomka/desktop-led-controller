@@ -10,16 +10,20 @@ import (
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
-//go:embed style.rgs
+//go:embed panel_style.rgs
 var style []byte
 
-type Element interface {
+type Renderer interface {
 	Update()
 	Render()
 }
 
+type Element interface {
+	Renderer
+}
+
 type Panel interface {
-	Element
+	Renderer
 	Title() string
 }
 
@@ -38,7 +42,7 @@ type PanelControler struct {
 	dialogs []Element
 }
 
-func NewPanelControler(panelConfig ...PanelConfigFunc) Element {
+func NewPanelControler(panelConfig ...PanelConfigFunc) Renderer {
 	navBarHeight := float32(24)
 	navBarPosition := func(pb *PanelBase) { pb.height = navBarHeight }
 	shiftPosition := func(pb *PanelBase) {

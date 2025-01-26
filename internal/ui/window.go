@@ -8,6 +8,7 @@ import (
 
 var (
 	windowShouldClose bool
+	selectedColor     color.RGBA = raylib.Gray
 )
 
 type WindowConfigFunc func(*WindowConfig)
@@ -29,14 +30,8 @@ func defaultConfig() WindowConfig {
 type Window struct {
 	width, height int32
 
-	camera *raylib.Camera
-	hud    Element
-
-	cubeGrid      *CubeGrid
-	selectedColor color.RGBA
-
-	ray       raylib.Ray
-	collision raylib.RayCollision
+	hud      Renderer
+	cubeGrid Renderer
 }
 
 func NewWindow(configFuncs ...WindowConfigFunc) *Window {
@@ -48,19 +43,12 @@ func NewWindow(configFuncs ...WindowConfigFunc) *Window {
 	return &Window{
 		width:  config.windowWidth,
 		height: config.windowHeight,
-		camera: &raylib.Camera{
-			Position:   raylib.NewVector3(30.0, 30.0, 30.0),
-			Target:     raylib.NewVector3(10.0, 0.0, 0.0),
-			Up:         raylib.NewVector3(0.0, 1.0, 0.0),
-			Fovy:       55.0,
-			Projection: raylib.CameraPerspective,
-		},
+
 		cubeGrid: NewCubeGrid(
 			config.cubeBaseSize,
 			config.cubeBaseSize,
 			config.cubeHeight,
 			raylib.NewVector3(1, 1, 1)),
-		selectedColor: raylib.Gray,
 	}
 }
 
@@ -73,13 +61,12 @@ func (w *Window) Start() {
 	for !windowShouldClose {
 		windowShouldClose = raylib.WindowShouldClose()
 
-		w.updateCamera()
-		w.updateCubes()
+		w.cubeGrid.Update()
 		w.hud.Update()
 
 		raylib.BeginDrawing()
 
-		w.render3D()
+		w.cubeGrid.Render()
 		w.hud.Render()
 
 		raylib.EndDrawing()
@@ -88,49 +75,4 @@ func (w *Window) Start() {
 
 func (w *Window) Stop() {
 	raylib.CloseWindow()
-}
-
-func (w *Window) updateCamera() {
-	if raylib.IsMouseButtonDown(raylib.MouseLeftButton) {
-		raylib.UpdateCamera(w.camera, raylib.CameraThirdPerson)
-	}
-}
-
-func (w *Window) updateCubes() {
-	if raylib.IsMouseButtonPressed(raylib.MouseLeftButton) {
-		w.ray = raylib.GetScreenToWorldRay(raylib.GetMousePosition(), *w.camera)
-
-		// TODO: add single slice iterating when slicing in editor panel is created
-		for cube := range w.cubeGrid.IterateCubes() {
-			// This hits multiple cubes, need to think on how to handle only a single collision
-			w.collision = raylib.GetRayCollisionBox(
-				w.ray,
-				raylib.NewBoundingBox(
-					raylib.NewVector3(
-						cube.pos.X-w.cubeGrid.size.X/2,
-						cube.pos.Y-w.cubeGrid.size.Y/2,
-						cube.pos.Z-w.cubeGrid.size.Z/2),
-					raylib.NewVector3(
-						cube.pos.X+w.cubeGrid.size.X/2,
-						cube.pos.Y+w.cubeGrid.size.Y/2,
-						cube.pos.Z+w.cubeGrid.size.Z/2),
-				))
-
-			if w.collision.Hit {
-				cube.color = w.selectedColor
-			}
-		}
-	}
-}
-
-func (w *Window) render3D() {
-	raylib.ClearBackground(raylib.DarkGray)
-	raylib.BeginMode3D(*w.camera)
-
-	for cube := range w.cubeGrid.IterateCubes() {
-		raylib.DrawCubeV(cube.pos, w.cubeGrid.size, cube.color)
-		raylib.DrawCubeWiresV(cube.pos, w.cubeGrid.size, raylib.Black)
-	}
-
-	raylib.EndMode3D()
 }
