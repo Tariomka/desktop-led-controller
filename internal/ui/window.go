@@ -1,14 +1,9 @@
 package ui
 
 import (
-	"image/color"
-
+	"github.com/Tariomka/desktop-led-controller/internal/ui/component"
+	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 	raylib "github.com/gen2brain/raylib-go/raylib"
-)
-
-var (
-	windowShouldClose bool
-	selectedColor     color.RGBA = raylib.Gray
 )
 
 type WindowConfigFunc func(*WindowConfig)
@@ -30,8 +25,8 @@ func defaultConfig() WindowConfig {
 type Window struct {
 	width, height int32
 
-	hud      Renderer
-	cubeGrid Renderer
+	hud      component.Renderer
+	cubeGrid component.Renderer
 }
 
 func NewWindow(configFuncs ...WindowConfigFunc) *Window {
@@ -44,7 +39,7 @@ func NewWindow(configFuncs ...WindowConfigFunc) *Window {
 		width:  config.windowWidth,
 		height: config.windowHeight,
 
-		cubeGrid: NewCubeGrid(
+		cubeGrid: component.NewCubeGrid(
 			config.cubeBaseSize,
 			config.cubeBaseSize,
 			config.cubeHeight,
@@ -56,10 +51,10 @@ func (w *Window) Start() {
 	raylib.SetConfigFlags(raylib.FlagWindowResizable)
 	raylib.InitWindow(w.width, w.height, "Led Cube Controller")
 	raylib.SetTargetFPS(60)
-	w.hud = NewPanelControler()
+	w.hud = component.NewPanelControler()
 
-	for !windowShouldClose {
-		windowShouldClose = raylib.WindowShouldClose()
+	for !global.WindowShouldClose {
+		global.WindowShouldClose = raylib.WindowShouldClose()
 
 		w.cubeGrid.Update()
 		w.hud.Update()

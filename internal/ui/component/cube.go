@@ -1,9 +1,10 @@
-package ui
+package component
 
 import (
 	"image/color"
 	"iter"
 
+	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -41,7 +42,7 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) Renderer {
 						sizeZ*float32(z),
 						sizeY*float32(y),
 					),
-					color: raylib.Blank,
+					color: global.ColorOff,
 				}
 			}
 		}
@@ -49,8 +50,13 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) Renderer {
 
 	// for debugging purposes
 	// Delete this block when done
-	grid[7][0][1].color = raylib.Red
-	grid[7][0][6].color = raylib.Blue
+	grid[7][0][1].color = global.ColorRed
+	grid[7][0][3].color = global.ColorGreen
+	grid[7][0][6].color = global.ColorBlue
+	grid[7][4][2].color = global.ColorCyan
+	grid[7][4][4].color = global.ColorYellow
+	grid[7][4][6].color = global.ColorViolet
+	grid[7][7][5].color = global.ColorWhite
 
 	return &CubeGrid{
 		cubes: grid,
@@ -115,7 +121,7 @@ func (cg *CubeGrid) updateCollision() {
 			))
 
 		if cg.collision.Hit {
-			cube.color = selectedColor
+			cube.color = global.SelectedColor
 		}
 	}
 }
