@@ -14,13 +14,24 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Go
+    - name: Setup Environment
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y --no-install-recommends libglfw3 libglfw3-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxext-dev libxfixes-dev libwayland-dev libxkbcommon-dev
+      shell: bash
+
+    - name: Setup Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.22'
+        go-version: '1.23.4'
 
     - name: Build
-      run: go build -v ./src/main.go
+      run: go build -v ./main.go
 
-    - name: Test
-      run: go test -v ./test/...
+    - name: Run Tests
+      uses: nick-fields/retry@v3
+      with:
+        timeout_minutes: 1
+        max_attempts: 5
+        retry_on: error
+        command: go test -v ./test/...

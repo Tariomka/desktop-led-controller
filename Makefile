@@ -1,17 +1,47 @@
-run: build
-	@./bin/led_server
+BIN_DIR = bin
+RAYLIB = raylib.dll
+BUILD_FLAGS = -ldflags "-H=windowsgui"
+ifdef OS
+	RM = del /s /q
+	CP = copy
+	EXE_NAME = desktop_app.exe
+else
+	RM = rm -rf
+	CP = cp
+	EXE_NAME = desktop_app
+endif
+
+run: build copy_raylib
+	@./$(BIN_DIR)/$(EXE_NAME)
+
+run_no_build:
+	@./$(BIN_DIR)/$(EXE_NAME)
 
 build: create
-	@go build -o ./bin/led_server ./src/main.go
+	@echo Staring to build executable, please wait...
+	@go build -o ./$(BIN_DIR)/$(EXE_NAME) $(BUILD_FLAGS) main.go
+	@echo Executable built successfully.
+
+copy_raylib: create
+	@if not exist ./$(BIN_DIR)/$(RAYLIB) $(CP) $(RAYLIB) $(BIN_DIR)
 
 create:
-	@mkdir -p bin
+	@if not exist $(BIN_DIR) mkdir $(BIN_DIR)
 
 clean:
-	@rm -rf bin
+	@$(RM) $(BIN_DIR)
 
-test_:
+tests:
 	@go test ./test/...
 
-test_v:
+tests_verbose:
 	@go test -v ./test/...
+
+# remove later
+placeholder_run: placeholder_build
+	@./$(BIN_DIR)/placeholder.exe
+
+placeholder_build:
+	@echo Staring to build executable, please wait...
+	@go build -o ./$(BIN_DIR)/placeholder.exe ./rpi_placeholder/main.go
+	@echo Executable built successfully.

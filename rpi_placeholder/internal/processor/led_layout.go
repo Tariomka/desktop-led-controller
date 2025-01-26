@@ -1,6 +1,10 @@
 package processor
 
-import "github.com/Tariomka/led-server/src/common"
+import (
+	"iter"
+
+	"github.com/Tariomka/desktop-led-controller/rpi_placeholder/internal/common"
+)
 
 type Color uint8
 
@@ -60,8 +64,11 @@ type LedBlockWorker interface {
 }
 
 type Slicer interface {
-	GetSlice(layer uint8) []byte
+	IterateSlices() iter.Seq2[uint8, []byte]
 }
+
+type Frame func(LayoutWorker) // Single frame of a light show
+type LightShow []Frame        // Collection of light show frames
 
 // State representation of all led colors of the cube.
 //
@@ -78,11 +85,14 @@ type Slicer interface {
 // i.e. 0b00000001 turns on the right most led, 0b10000000 - left most led.
 type LedLayout [8][24]byte
 
-func (ll *LedLayout) GetSlice(layer uint8) []byte {
-	if err := common.ErrIfOutOfBounds(layer); err != nil {
-		return []byte{}
+func (ll *LedLayout) IterateSlices() iter.Seq2[uint8, []byte] {
+	return func(yield func(i uint8, v []byte) bool) {
+		for zAxis := uint8(0); zAxis < 8; zAxis++ {
+			if !yield(zAxis, ll[zAxis][:]) {
+				return
+			}
+		}
 	}
-	return ll[layer][:]
 }
 
 func (ll *LedLayout) ChangeSingle(x, y, z uint8, c Color) error {
@@ -326,28 +336,22 @@ func layoutOffsetIndex(index uint8, c Color) []uint8 {
 }
 
 func validateAxes(x, y, z uint8) error {
-	if err := common.ErrIfOutOfBounds(x); err != nil {
-		return err
-	}
-	if err := common.ErrIfOutOfBounds(y); err != nil {
-		return err
-	}
-	if err := common.ErrIfOutOfBounds(z); err != nil {
-		return err
+	if x > 7 || y > 7 || z > 7 {
+		return common.ErrOutOfBounds
 	}
 	return nil
 }
 
 func validateRow(y, z uint8) error {
-	if err := common.ErrIfOutOfBounds(y); err != nil {
-		return err
-	}
-	if err := common.ErrIfOutOfBounds(z); err != nil {
-		return err
+	if y > 7 || z > 7 {
+		return common.ErrOutOfBounds
 	}
 	return nil
 }
 
 func validateLayer(z uint8) error {
-	return common.ErrIfOutOfBounds(z)
+	if z > 7 {
+		return common.ErrOutOfBounds
+	}
+	return nil
 }
