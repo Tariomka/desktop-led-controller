@@ -177,29 +177,29 @@ func TestLedLayout_ChangeSingle(t *testing.T) {
 		assert.Nil(t, actual)
 	})
 
-	// t.Run("WhenCalledMulitpleTimes", func(t *testing.T) {
-	// 	// Arrange
-	// 	xFirst := uint8(rand.Intn(8))
-	// 	xSecond := uint8(rand.Intn(8))
-	// 	xThird := uint8(rand.Intn(8))
-	// 	y := uint8(rand.Intn(8))
-	// 	z := uint8(rand.Intn(8))
-	// 	expectedGreen := ^byte(1<<xFirst) & ^byte(1<<xThird)
-	// 	expectedBlue := ^byte(1 << xFirst)
-	// 	expectedRed := ^byte(1<<xFirst) & ^byte(1<<xSecond) & ^byte(1<<xThird)
-	// 	ll := &processor.LedLayout{}
-	// 	ll.SetRow(y, z, processor.White)
+	t.Run("WhenCalledMulitpleTimes", func(t *testing.T) {
+		// Arrange
+		xFirst := uint8(rand.Intn(8))
+		xSecond := uint8(rand.Intn(8))
+		xThird := uint8(rand.Intn(8))
+		y := uint8(rand.Intn(8))
+		z := uint8(rand.Intn(8))
+		expectedGreen := ^byte(1<<xFirst) & ^byte(1<<xThird)
+		expectedBlue := ^byte(1 << xFirst)
+		expectedRed := ^byte(1<<xFirst) & ^byte(1<<xSecond) & ^byte(1<<xThird)
+		ll := &processor.LedLayout{}
+		ll.SetRow(y, z, processor.White)
 
-	// 	// Act
-	// 	ll.ChangeSingle(xFirst, y, z, processor.NoColor)
-	// 	ll.ChangeSingle(xSecond, y, z, processor.Cyan)
-	// 	ll.ChangeSingle(xThird, y, z, processor.Blue)
+		// Act
+		ll.ChangeSingle(xFirst, y, z, processor.NoColor)
+		ll.ChangeSingle(xSecond, y, z, processor.Cyan)
+		ll.ChangeSingle(xThird, y, z, processor.Blue)
 
-	// 	// Assert
-	// 	assert.Equal(t, expectedGreen, ll[z][y])
-	// 	assert.Equal(t, expectedBlue, ll[z][y+8])
-	// 	assert.Equal(t, expectedRed, ll[z][y+16])
-	// })
+		// Assert
+		assert.Equal(t, expectedGreen, ll[z][y])
+		assert.Equal(t, expectedBlue, ll[z][y+8])
+		assert.Equal(t, expectedRed, ll[z][y+16])
+	})
 }
 
 func TestLedLayout_ChangeRowIndividual(t *testing.T) {
