@@ -66,7 +66,7 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) Renderer {
 			Position:   raylib.NewVector3(30.0, 30.0, 30.0),
 			Target:     raylib.NewVector3(10.0, 0.0, 0.0),
 			Up:         raylib.NewVector3(0.0, 1.0, 0.0),
-			Fovy:       55.0,
+			Fovy:       float32(yCount)*float32(zCount) - float32(xCount),
 			Projection: raylib.CameraPerspective,
 		},
 	}

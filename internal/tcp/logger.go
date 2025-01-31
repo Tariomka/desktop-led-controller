@@ -34,37 +34,34 @@ const (
 	timeFormat = "[15:04:05.000]"
 )
 
-func colorize(colorCode int, value string) string {
-	return fmt.Sprintf("\033[%sm%s%s", strconv.Itoa(colorCode), value, reset)
-}
-
 type LogHandler struct {
 	handler slog.Handler
-	buffer  *bytes.Buffer
-	mutex   *sync.Mutex
 	print   func(message string)
+
+	mutex  *sync.Mutex
+	buffer *bytes.Buffer
 }
 
 func NewLogHandler(
 	printCallback func(message string),
-	opts *slog.HandlerOptions,
-) slog.Handler {
+	opts *slog.HandlerOptions) slog.Handler {
 	if opts == nil {
 		opts = &slog.HandlerOptions{}
 	}
 	if printCallback == nil {
 		printCallback = func(message string) { fmt.Println(message) }
 	}
+
 	buffer := &bytes.Buffer{}
 	return &LogHandler{
-		buffer: buffer,
 		handler: slog.NewJSONHandler(buffer, &slog.HandlerOptions{
 			Level:       opts.Level,
 			AddSource:   opts.AddSource,
 			ReplaceAttr: suppressDefaults(opts.ReplaceAttr),
 		}),
-		mutex: &sync.Mutex{},
-		print: printCallback,
+		print:  printCallback,
+		mutex:  &sync.Mutex{},
+		buffer: buffer,
 	}
 }
 
@@ -110,18 +107,18 @@ func (lh *LogHandler) Enabled(ctx context.Context, level slog.Level) bool {
 func (lh *LogHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return &LogHandler{
 		handler: lh.handler.WithAttrs(attrs),
-		buffer:  lh.buffer,
-		mutex:   lh.mutex,
 		print:   lh.print,
+		mutex:   lh.mutex,
+		buffer:  lh.buffer,
 	}
 }
 
 func (lh *LogHandler) WithGroup(name string) slog.Handler {
 	return &LogHandler{
 		handler: lh.handler.WithGroup(name),
-		buffer:  lh.buffer,
-		mutex:   lh.mutex,
 		print:   lh.print,
+		mutex:   lh.mutex,
+		buffer:  lh.buffer,
 	}
 }
 
@@ -131,13 +128,13 @@ func (lh *LogHandler) computeAttrs(ctx context.Context, record slog.Record) (map
 		lh.buffer.Reset()
 		lh.mutex.Unlock()
 	}()
+
 	if err := lh.handler.Handle(ctx, record); err != nil {
 		return nil, fmt.Errorf("error when calling inner handler's Handle: %w", err)
 	}
 
 	var attrs map[string]any
-	err := json.Unmarshal(lh.buffer.Bytes(), &attrs)
-	if err != nil {
+	if err := json.Unmarshal(lh.buffer.Bytes(), &attrs); err != nil {
 		return nil, fmt.Errorf("error when unmarshaling inner handler's Handle result: %w", err)
 	}
 	return attrs, nil
@@ -153,4 +150,8 @@ func suppressDefaults(next func([]string, slog.Attr) slog.Attr) func([]string, s
 		}
 		return next(groups, attr)
 	}
+}
+
+func colorize(colorCode int, value string) string {
+	return fmt.Sprintf("\033[%sm%s%s", strconv.Itoa(colorCode), value, reset)
 }

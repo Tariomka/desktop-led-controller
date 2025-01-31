@@ -9,16 +9,16 @@ import (
 type WindowConfigFunc func(*WindowConfig)
 
 type WindowConfig struct {
-	windowWidth, windowHeight int32
-	cubeBaseSize, cubeHeight  uint8
+	WindowWidth, WindowHeight int32
+	CubeBaseSize, CubeHeight  uint8
 }
 
 func defaultConfig() WindowConfig {
 	return WindowConfig{
-		windowWidth:  1280,
-		windowHeight: 720,
-		cubeBaseSize: 8,
-		cubeHeight:   8,
+		WindowWidth:  1280,
+		WindowHeight: 720,
+		CubeBaseSize: 8,
+		CubeHeight:   8,
 	}
 }
 
@@ -36,13 +36,13 @@ func NewWindow(configFuncs ...WindowConfigFunc) *Window {
 	}
 
 	return &Window{
-		width:  config.windowWidth,
-		height: config.windowHeight,
+		width:  config.WindowWidth,
+		height: config.WindowHeight,
 
 		cubeGrid: component.NewCubeGrid(
-			config.cubeBaseSize,
-			config.cubeBaseSize,
-			config.cubeHeight,
+			config.CubeBaseSize,
+			config.CubeBaseSize,
+			config.CubeHeight,
 			raylib.NewVector3(1, 1, 1)),
 	}
 }

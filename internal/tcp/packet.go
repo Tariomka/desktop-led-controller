@@ -1,10 +1,6 @@
 package tcp
 
-import (
-	"fmt"
-
-	"github.com/Tariomka/desktop-led-controller/internal/common"
-)
+import "github.com/Tariomka/desktop-led-controller/internal/common"
 
 type DataType byte
 
@@ -55,12 +51,12 @@ func (p Packet) Marshall() []byte {
 
 func UnmarshallPacket(data []byte) (*Packet, error) {
 	if len(data) < headerSize {
-		return nil, fmt.Errorf("data too small")
+		return nil, common.ErrNotEnoughData
 	}
 
 	version := data[0]
 	if version != 1 {
-		return nil, fmt.Errorf("unsupported version: %d", version)
+		return nil, common.ErrUnsupportedVersion
 	}
 
 	dtype := DataType(data[1])
