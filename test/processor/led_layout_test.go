@@ -36,7 +36,6 @@ func TestLedLayout(t *testing.T) {
 	}
 	for i := uint8(2); i < 6; i++ {
 		ll.SetRowIndividual(i, i, processor.Violet, 0b00111100)
-
 	}
 	ll.SetSingle(7, 7, 7, processor.Red)
 

@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"iter"
 
+	"github.com/Tariomka/desktop-led-controller/internal/common"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -42,7 +43,7 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) Renderer {
 						sizeZ*float32(z),
 						sizeY*float32(y),
 					),
-					color: global.ColorOff,
+					color: common.ColorOff,
 				}
 			}
 		}
@@ -50,13 +51,13 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) Renderer {
 
 	// for debugging purposes
 	// Delete this block when done
-	grid[7][0][1].color = global.ColorRed
-	grid[7][0][3].color = global.ColorGreen
-	grid[7][0][6].color = global.ColorBlue
-	grid[7][4][2].color = global.ColorCyan
-	grid[7][4][4].color = global.ColorYellow
-	grid[7][4][6].color = global.ColorViolet
-	grid[7][7][5].color = global.ColorWhite
+	grid[7][0][1].color = common.ColorRed
+	grid[7][0][3].color = common.ColorGreen
+	grid[7][0][6].color = common.ColorBlue
+	grid[7][4][2].color = common.ColorCyan
+	grid[7][4][4].color = common.ColorYellow
+	grid[7][4][6].color = common.ColorViolet
+	grid[7][7][5].color = common.ColorWhite
 
 	return &CubeGrid{
 		cubes: grid,
@@ -72,7 +73,7 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) Renderer {
 }
 
 func (cg *CubeGrid) Update() {
-	if raylib.IsMouseButtonPressed(raylib.MouseLeftButton) {
+	if global.ShouldChangeColor && raylib.IsMouseButtonPressed(raylib.MouseLeftButton) {
 		cg.updateCollision()
 	}
 	if raylib.IsMouseButtonDown(raylib.MouseLeftButton) {
