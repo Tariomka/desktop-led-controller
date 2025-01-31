@@ -9,14 +9,12 @@ import (
 )
 
 type ServerConfig struct {
-	Address        string
-	MaxConnections uint8
+	Address string
 }
 
 func NewConfig() ServerConfig {
 	return ServerConfig{
-		Address:        ":42069",
-		MaxConnections: 4,
+		Address: ":42069",
 	}
 }
 
@@ -27,12 +25,11 @@ type Server interface {
 }
 
 type LedServer struct {
-	listener  net.Listener
+	listener net.Listener
+	logger   *slog.Logger
+
 	waitGroup *sync.WaitGroup
-	conns     map[*Connection]bool
-	maxConns  uint8
-	mutex     sync.RWMutex
-	logger    *slog.Logger
+	conns     sync.Map
 }
 
 func NewServer(config ServerConfig) (Server, error) {
@@ -42,14 +39,11 @@ func NewServer(config ServerConfig) (Server, error) {
 	}
 
 	return &LedServer{
-		listener:  listener,
-		waitGroup: &sync.WaitGroup{},
-		conns:     make(map[*Connection]bool, config.MaxConnections),
-		maxConns:  config.MaxConnections,
-		mutex:     sync.RWMutex{},
 		logger: slog.New(NewLogHandler(
 			func(message string) { fmt.Println(message) },
 			&slog.HandlerOptions{Level: slog.LevelDebug})),
+		listener:  listener,
+		waitGroup: &sync.WaitGroup{},
 	}, nil
 }
 
@@ -63,19 +57,10 @@ func (ls *LedServer) Start() {
 			break
 		}
 
-		var connWrapper *Connection
-		if len(ls.conns) >= int(ls.maxConns) {
-			ls.logger.Warn("can't accept any new connections, because of limited capacity", "connection", connection.LocalAddr())
-			connection.Close()
-			continue
-		}
-		ls.withLock(func() {
-			connWrapper = NewConnection(connection, ls.waitGroup)
-			ls.conns[connWrapper] = true
-			ls.logger.Debug("new connection aquired:",
-				"connection", connWrapper.connection.RemoteAddr(),
-				"current capacity", len(ls.conns))
-		})
+		connWrapper := NewConnection(connection, ls.waitGroup)
+		ls.conns.Store(connWrapper, true)
+		ls.logger.Debug("new connection aquired:",
+			"connection", connWrapper.connection.RemoteAddr())
 
 		go ls.receive(connWrapper)
 	}
@@ -83,8 +68,8 @@ func (ls *LedServer) Start() {
 }
 
 func (ls *LedServer) Stop() {
-	for connection := range ls.conns {
-		connection.Close()
+	for connection := range ls.conns.Range {
+		connection.(*Connection).Close()
 	}
 	ls.listener.Close()
 }
@@ -115,22 +100,12 @@ func (ls *LedServer) receive(connection *Connection) {
 }
 
 func (ls *LedServer) broadcast(packet Packet) {
-	ls.mutex.RLock()
-	defer ls.mutex.RUnlock()
-	for connection := range ls.conns {
-		connection.WritePacket(packet)
+	for connection := range ls.conns.Range {
+		connection.(*Connection).WritePacket(packet)
 	}
 }
 
 func (ls *LedServer) removeConnection(conn *Connection) {
-	ls.logger.Info("removing connection:", "connection", conn.connection.LocalAddr())
 	conn.Close()
-	ls.withLock(func() { delete(ls.conns, conn) })
-}
-
-func (ls *LedServer) withLock(callback func()) {
-	ls.mutex.Lock()
-	defer ls.mutex.Unlock()
-
-	callback()
+	ls.conns.Delete(conn)
 }
