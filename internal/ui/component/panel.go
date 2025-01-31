@@ -158,13 +158,14 @@ type ConsolePanel struct {
 	PanelBase
 	output *string
 	test   int
+	scroll int32
 }
 
 func (cp *ConsolePanel) Update() {
 	cp.resize()
 	cp.test++
 	if cp.test%50 == 0 {
-		text := *cp.output + fmt.Sprintf("\nMessage #%d", cp.test)
+		text := fmt.Sprintf("Message #%d\n", cp.test) + *cp.output
 		cp.output = &text
 	}
 }
@@ -172,29 +173,9 @@ func (cp *ConsolePanel) Update() {
 func (cp *ConsolePanel) Render() {
 	bounds := raylib.NewRectangle(cp.pos.X, cp.pos.Y, cp.width, cp.height)
 	content := raylib.NewRectangle(cp.pos.X+10, cp.pos.Y+10, cp.width-20, cp.height-20)
-	// raygui.Panel(bounds, "")
-	scroll := raylib.NewVector2(10, 10)
-	view := raylib.NewRectangle(cp.pos.X+20, cp.pos.Y+20, cp.width-40, cp.height-40)
 
-	raygui.ScrollPanel(
-		bounds,
-		"",
-		content,
-		&scroll,
-		&view,
-	)
-	// raygui.ListView(
-	// 	raylib.NewRectangle(cp.pos.X+10, cp.pos.Y+10, cp.width-20, cp.height-20),
-	// 	*cp.output,
-	// 	nil,
-	// 	-1,
-	// )
-	raygui.TextBox(
-		view,
-		cp.output,
-		10,
-		false,
-	)
+	raygui.Panel(bounds, "")
+	raygui.ListView(content, *cp.output, &cp.scroll, -1)
 }
 
 func (cp *ConsolePanel) Title() string { return cp.title }
