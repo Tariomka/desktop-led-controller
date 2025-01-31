@@ -106,7 +106,6 @@ func (ls *LedServer) broadcast(packet Packet) {
 }
 
 func (ls *LedServer) removeConnection(conn *Connection) {
-	ls.logger.Info("removing connection:", "connection", conn.connection.RemoteAddr())
 	conn.Close()
 	ls.conns.Delete(conn)
 }
