@@ -27,12 +27,14 @@ type Server interface {
 }
 
 type LedServer struct {
-	listener  net.Listener
+	listener net.Listener
+	maxConns uint8
+
 	waitGroup *sync.WaitGroup
-	conns     map[*Connection]bool
-	maxConns  uint8
 	mutex     sync.RWMutex
-	logger    *slog.Logger
+	conns     map[*Connection]bool
+
+	logger *slog.Logger
 }
 
 func NewServer(config ServerConfig) (Server, error) {
@@ -43,10 +45,10 @@ func NewServer(config ServerConfig) (Server, error) {
 
 	return &LedServer{
 		listener:  listener,
-		waitGroup: &sync.WaitGroup{},
-		conns:     make(map[*Connection]bool, config.MaxConnections),
 		maxConns:  config.MaxConnections,
+		waitGroup: &sync.WaitGroup{},
 		mutex:     sync.RWMutex{},
+		conns:     make(map[*Connection]bool, config.MaxConnections),
 		logger: slog.New(NewLogHandler(
 			func(message string) { fmt.Println(message) },
 			&slog.HandlerOptions{Level: slog.LevelDebug})),
@@ -63,12 +65,13 @@ func (ls *LedServer) Start() {
 			break
 		}
 
-		var connWrapper *Connection
 		if len(ls.conns) >= int(ls.maxConns) {
 			ls.logger.Warn("can't accept any new connections, because of limited capacity", "connection", connection.LocalAddr())
 			connection.Close()
 			continue
 		}
+
+		var connWrapper *Connection
 		ls.withLock(func() {
 			connWrapper = NewConnection(connection, ls.waitGroup)
 			ls.conns[connWrapper] = true
