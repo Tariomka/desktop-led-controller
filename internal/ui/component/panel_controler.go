@@ -11,16 +11,16 @@ import (
 var style []byte
 
 type PanelSelector interface {
-	SetSelectedPanel(panel Panel)
-	IteratePanels() iter.Seq2[int, Panel]
+	SetSelectedPanel(panel Renderer)
+	IteratePanels() iter.Seq2[string, Renderer]
 	PanelCount() int
 }
 
 type PanelControler struct {
-	navBar Panel
+	navBar Renderer
 
-	panels        []Panel
-	selectedPanel Panel
+	panels        []NamedPanel
+	selectedPanel Renderer
 
 	dialogs []Element
 }
@@ -32,17 +32,14 @@ func NewPanelControler(panelConfig ...PanelConfigFunc) Renderer {
 		pb.pos.Y += navBarHeight
 		pb.height -= navBarHeight
 	}
-	setTitle := func(name string) PanelConfigFunc {
-		return func(pb *PanelBase) { pb.title = name }
-	}
 
 	controller := &PanelControler{
 		navBar: NewPanel[*NavigationPanel](append(panelConfig, navBarPosition)...),
-		panels: []Panel{
-			NewPanel[*EditPanel](append(panelConfig, shiftPosition, setTitle("Edit"))...),
-			NewPanel[*MenuPanel](append(panelConfig, shiftPosition, setTitle("Menu"))...),
-			NewPanel[*ConsolePanel](append(panelConfig, shiftPosition, setTitle("Console"))...),
-			NewPanel[*PlaceholderPanel](append(panelConfig, shiftPosition, setTitle("Placeholder"))...),
+		panels: []NamedPanel{
+			NewNamedPanel[*EditPanel]("Edit", append(panelConfig, shiftPosition)...),
+			NewNamedPanel[*MenuPanel]("Menu", append(panelConfig, shiftPosition)...),
+			NewNamedPanel[*ConsolePanel]("Console", append(panelConfig, shiftPosition)...),
+			NewNamedPanel[*PlaceholderPanel]("Placeholder", append(panelConfig, shiftPosition)...),
 		},
 		dialogs: []Element{
 			NewElement[*ExitDialog](),
@@ -75,12 +72,12 @@ func (pc *PanelControler) Render() {
 	}
 }
 
-func (pc *PanelControler) SetSelectedPanel(panel Panel) { pc.selectedPanel = panel }
+func (pc *PanelControler) SetSelectedPanel(panel Renderer) { pc.selectedPanel = panel }
 
-func (pc *PanelControler) IteratePanels() iter.Seq2[int, Panel] {
-	return func(yield func(int, Panel) bool) {
-		for index, panel := range pc.panels {
-			if !yield(index, panel) {
+func (pc *PanelControler) IteratePanels() iter.Seq2[string, Renderer] {
+	return func(yield func(string, Renderer) bool) {
+		for _, panel := range pc.panels {
+			if !yield(panel.Title, panel.Renderer) {
 				return
 			}
 		}

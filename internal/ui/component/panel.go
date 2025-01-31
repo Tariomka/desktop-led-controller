@@ -2,23 +2,18 @@ package component
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
 	"github.com/gen2brain/raylib-go/raygui"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
-type Panel interface {
-	Renderer
-	Title() string
-}
-
 type PanelConfigFunc func(*PanelBase)
 
 type PanelBase struct {
 	pos           raylib.Vector2
 	width, height float32
-	title         string
 }
 
 // Default calculates properties with respect to window size, which only works after raylib init is called.
@@ -54,7 +49,7 @@ func (pb *PanelBase) resize(additionalResizes ...func()) {
 	}
 }
 
-func NewPanel[T Panel](panelConfig ...PanelConfigFunc) Panel {
+func NewPanel[T Renderer](panelConfig ...PanelConfigFunc) Renderer {
 	base := defaultPanelBase()
 	for _, config := range panelConfig {
 		config(&base)
@@ -73,15 +68,15 @@ func NewPanel[T Panel](panelConfig ...PanelConfigFunc) Panel {
 	case *MenuPanel:
 		return &MenuPanel{PanelBase: base}
 	case *ConsolePanel:
-		text := "Placeholder"
 		return &ConsolePanel{
-			PanelBase: base,
-			output:    &text,
+			PanelBase:       base,
+			messages:        make([]string, 0),
+			maxMessageCount: 100,
 		}
 	case *PlaceholderPanel:
 		return &PlaceholderPanel{PanelBase: base}
 	default:
-		return nil
+		panic("wrong renderer type")
 	}
 }
 
@@ -90,6 +85,7 @@ type NavigationPanel struct {
 	parent       PanelSelector
 	buttonWidth  float32
 	buttonStates []bool
+	index        int
 }
 
 func (nav *NavigationPanel) SetParent(parent PanelSelector) {
@@ -104,17 +100,18 @@ func (nav *NavigationPanel) Update() {
 }
 
 func (nav *NavigationPanel) Render() {
-	for index, panel := range nav.parent.IteratePanels() {
+	nav.index = 0
+	for name, panel := range nav.parent.IteratePanels() {
 		// TODO: Add tooltip to buttons.
 		// Note: raygui-go does not have tooltip bindings so probably need to implement by hand.
 		bounds := raylib.NewRectangle(
-			nav.pos.X+float32(index)*nav.buttonWidth,
+			nav.pos.X+float32(nav.index)*nav.buttonWidth,
 			nav.pos.Y,
 			nav.buttonWidth,
 			nav.height)
 
-		if !raygui.Button(bounds, panel.Title()) {
-			if nav.buttonStates[index] {
+		if !raygui.Button(bounds, name) {
+			if nav.buttonStates[nav.index] {
 				raylib.DrawRectangleRec(
 					bounds,
 					common.IntToRGBAEx(
@@ -128,23 +125,23 @@ func (nav *NavigationPanel) Render() {
 						230))
 			}
 
+			nav.index++
 			continue
 		}
 
-		previousState := nav.buttonStates[index]
+		previousState := nav.buttonStates[nav.index]
 		for i := range nav.buttonStates {
 			nav.buttonStates[i] = false
 		}
-		nav.buttonStates[index] = !previousState
-		if nav.buttonStates[index] {
+		nav.buttonStates[nav.index] = !previousState
+		if nav.buttonStates[nav.index] {
 			nav.parent.SetSelectedPanel(panel)
 		} else {
 			nav.parent.SetSelectedPanel(nil)
 		}
+		nav.index++
 	}
 }
-
-func (nav *NavigationPanel) Title() string { return nav.title }
 
 type MenuPanel struct{ PanelBase }
 
@@ -154,21 +151,23 @@ func (menu *MenuPanel) Render() {
 	raygui.Panel(raylib.NewRectangle(menu.pos.X, menu.pos.Y, menu.width, menu.height), "")
 }
 
-func (menu *MenuPanel) Title() string { return menu.title }
-
 type ConsolePanel struct {
 	PanelBase
-	output *string
-	test   int
-	scroll int32
+	messages        []string
+	maxMessageCount uint16
+	test            int
+	focus           int32
+	scroll          int32
 }
 
 func (cp *ConsolePanel) Update() {
 	cp.resize()
 	cp.test++
 	if cp.test%50 == 0 {
-		text := fmt.Sprintf("Message #%d\n", cp.test) + *cp.output
-		cp.output = &text
+		cp.messages = append([]string{fmt.Sprintf("Message #%d: some ; aaaaaaaaaaaaaaaa", cp.test)}, cp.messages...)
+	}
+	if len(cp.messages) > int(cp.maxMessageCount) {
+		cp.messages = cp.messages[:cp.maxMessageCount]
 	}
 }
 
@@ -177,10 +176,12 @@ func (cp *ConsolePanel) Render() {
 	content := raylib.NewRectangle(cp.pos.X+10, cp.pos.Y+10, cp.width-20, cp.height-20)
 
 	raygui.Panel(bounds, "")
-	raygui.ListView(content, *cp.output, &cp.scroll, -1)
+	raygui.ListView(content, cp.getLineralizedText(), &cp.scroll, -1)
 }
 
-func (cp *ConsolePanel) Title() string { return cp.title }
+func (cp *ConsolePanel) getLineralizedText() string {
+	return strings.Join(cp.messages, "\n")
+}
 
 type EditPanel struct{ PanelBase }
 
@@ -190,8 +191,6 @@ func (ep *EditPanel) Render() {
 	raygui.Panel(raylib.NewRectangle(ep.pos.X, ep.pos.Y, ep.width, ep.height), "")
 }
 
-func (ep *EditPanel) Title() string { return ep.title }
-
 type PlaceholderPanel struct{ PanelBase }
 
 func (pp *PlaceholderPanel) Update() { pp.resize() }
@@ -200,4 +199,14 @@ func (pp *PlaceholderPanel) Render() {
 	raygui.Panel(raylib.NewRectangle(pp.pos.X, pp.pos.Y, pp.width, pp.height), "")
 }
 
-func (pp *PlaceholderPanel) Title() string { return pp.title }
+type NamedPanel struct {
+	Renderer
+	Title string
+}
+
+func NewNamedPanel[T Renderer](title string, panelConfig ...PanelConfigFunc) NamedPanel {
+	return NamedPanel{
+		Renderer: NewPanel[T](panelConfig...),
+		Title:    title,
+	}
+}
