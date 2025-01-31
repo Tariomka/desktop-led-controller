@@ -97,9 +97,6 @@ func (nav *NavigationPanel) SetParent(parent PanelSelector) {
 	panelCount := nav.parent.PanelCount()
 	nav.buttonWidth = nav.width / float32(panelCount)
 	nav.buttonStates = make([]bool, panelCount)
-	if panelCount > 0 {
-		nav.buttonStates[0] = true
-	}
 }
 
 func (nav *NavigationPanel) Update() {
@@ -115,6 +112,7 @@ func (nav *NavigationPanel) Render() {
 			nav.pos.Y,
 			nav.buttonWidth,
 			nav.height)
+
 		if !raygui.Button(bounds, panel.Title()) {
 			if nav.buttonStates[index] {
 				raylib.DrawRectangleRec(
@@ -133,12 +131,16 @@ func (nav *NavigationPanel) Render() {
 			continue
 		}
 
-		nav.parent.SetSelectedPanel(panel)
-
+		previousState := nav.buttonStates[index]
 		for i := range nav.buttonStates {
 			nav.buttonStates[i] = false
 		}
-		nav.buttonStates[index] = true
+		nav.buttonStates[index] = !previousState
+		if nav.buttonStates[index] {
+			nav.parent.SetSelectedPanel(panel)
+		} else {
+			nav.parent.SetSelectedPanel(nil)
+		}
 	}
 }
 

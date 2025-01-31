@@ -49,7 +49,6 @@ func NewPanelControler(panelConfig ...PanelConfigFunc) Renderer {
 		},
 	}
 
-	controller.selectedPanel = controller.panels[0]
 	controller.navBar.(*NavigationPanel).SetParent(controller)
 	controller.setStyle()
 
