@@ -7,9 +7,6 @@ import (
 	"github.com/gen2brain/raylib-go/raygui"
 )
 
-//go:embed panel_style.rgs
-var style []byte
-
 type PanelSelector interface {
 	SetSelectedPanel(panel Renderer)
 	IteratePanels() iter.Seq2[string, Renderer]
@@ -27,19 +24,21 @@ type PanelControler struct {
 
 func NewPanelControler(panelConfig ...PanelConfigFunc) Renderer {
 	navBarHeight := float32(24)
-	navBarPosition := func(pb *PanelBase) { pb.height = navBarHeight }
-	shiftPosition := func(pb *PanelBase) {
-		pb.pos.Y += navBarHeight
-		pb.height -= navBarHeight
-	}
+	navBarConfig := append(panelConfig, func(pb *PanelBase) { pb.height = navBarHeight })
+	panelConfig = append(
+		panelConfig,
+		func(pb *PanelBase) {
+			pb.pos.Y += navBarHeight
+			pb.height -= navBarHeight
+		})
 
 	controller := &PanelControler{
-		navBar: NewPanel[*NavigationPanel](append(panelConfig, navBarPosition)...),
+		navBar: NewPanel[*NavigationPanel](navBarConfig...),
 		panels: []NamedPanel{
-			NewNamedPanel[*EditPanel]("Edit", append(panelConfig, shiftPosition)...),
-			NewNamedPanel[*MenuPanel]("Menu", append(panelConfig, shiftPosition)...),
-			NewNamedPanel[*ConsolePanel]("Console", append(panelConfig, shiftPosition)...),
-			NewNamedPanel[*PlaceholderPanel]("Placeholder", append(panelConfig, shiftPosition)...),
+			NewNamedPanel[*EditPanel]("Edit", panelConfig...),
+			NewNamedPanel[*MenuPanel]("Menu", panelConfig...),
+			NewNamedPanel[*ConsolePanel]("Console", panelConfig...),
+			NewNamedPanel[*PlaceholderPanel]("Placeholder", panelConfig...),
 		},
 		dialogs: []Element{
 			NewElement[*ExitDialog](),
@@ -48,7 +47,6 @@ func NewPanelControler(panelConfig ...PanelConfigFunc) Renderer {
 
 	controller.navBar.(*NavigationPanel).SetParent(controller)
 	controller.setStyle()
-
 	return controller
 }
 
@@ -85,6 +83,9 @@ func (pc *PanelControler) IteratePanels() iter.Seq2[string, Renderer] {
 }
 
 func (pc *PanelControler) PanelCount() int { return len(pc.panels) }
+
+//go:embed panel_style.rgs
+var style []byte
 
 func (pc *PanelControler) setStyle() {
 	// Base style
