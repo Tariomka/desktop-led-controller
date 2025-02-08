@@ -92,9 +92,14 @@ func (pc *PanelControler) setStyle() {
 	raygui.LoadStyleFromMemory(style)
 
 	// Updates, maybe set everything myself or create custom style seleretaly?
-	raygui.SetStyle(0, raygui.BORDER_COLOR_FOCUSED, 0xff_00_00_7f)
-	raygui.SetStyle(0, raygui.BASE_COLOR_FOCUSED, 0xff_00_00_2f)
+	raygui.SetStyle(raygui.DEFAULT, raygui.BORDER_COLOR_FOCUSED, 0xff_00_00_7f)
+	raygui.SetStyle(raygui.DEFAULT, raygui.BASE_COLOR_FOCUSED, 0xff_00_00_2f)
 
 	raygui.SetStyle(raygui.BUTTON, raygui.BORDER_COLOR_PRESSED, 0xe0_3c_46_ff)
 	raygui.SetStyle(raygui.BUTTON, raygui.BASE_COLOR_PRESSED, 0x5b_1e_20_ff)
+
+	raygui.SetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE, 0)
+	// raygui.SetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE, raygui.TEXT_WRAP_CHAR)
+	// raygui.SetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE, raygui.TEXT_WRAP_WORD)
+	updateVariables()
 }

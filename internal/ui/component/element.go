@@ -16,6 +16,8 @@ func NewElement[T Element]() Element {
 	case *ExitDialog:
 		raylib.SetExitKey(0)
 		return &ExitDialog{}
+	case *MessageListView:
+		return &MessageListView{}
 	default:
 		return nil
 	}
@@ -60,3 +62,9 @@ func (ed *ExitDialog) Render() {
 		}
 	}
 }
+
+type MessageListView struct{}
+
+func (mlv *MessageListView) Update() {}
+
+func (mlv *MessageListView) Render() {}

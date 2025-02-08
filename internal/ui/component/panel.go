@@ -2,7 +2,6 @@ package component
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
 	"github.com/gen2brain/raylib-go/raygui"
@@ -156,7 +155,6 @@ type ConsolePanel struct {
 	messages        []string
 	maxMessageCount uint16
 	test            int
-	focus           int32
 	scroll          int32
 }
 
@@ -164,23 +162,20 @@ func (cp *ConsolePanel) Update() {
 	cp.resize()
 	cp.test++
 	if cp.test%50 == 0 {
-		cp.messages = append([]string{fmt.Sprintf("Message #%d: some ; aaaaaaaaaaaaaaaa", cp.test)}, cp.messages...)
+		cp.messages = append([]string{fmt.Sprintf("Message #%d: some ; aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", cp.test)}, cp.messages...)
 	}
 	if len(cp.messages) > int(cp.maxMessageCount) {
 		cp.messages = cp.messages[:cp.maxMessageCount]
 	}
+
 }
 
 func (cp *ConsolePanel) Render() {
 	bounds := raylib.NewRectangle(cp.pos.X, cp.pos.Y, cp.width, cp.height)
-	content := raylib.NewRectangle(cp.pos.X+10, cp.pos.Y+10, cp.width-20, cp.height-20)
-
 	raygui.Panel(bounds, "")
-	raygui.ListView(content, cp.getLineralizedText(), &cp.scroll, -1)
-}
 
-func (cp *ConsolePanel) getLineralizedText() string {
-	return strings.Join(cp.messages, "\n")
+	content := raylib.NewRectangle(cp.pos.X+5, cp.pos.Y+5, cp.width-10, cp.height-10)
+	GuiListViewEx(cp.messages, content, &cp.scroll)
 }
 
 type EditPanel struct{ PanelBase }

@@ -14,12 +14,20 @@ endif
 run: build copy_raylib
 	@./$(BIN_DIR)/$(EXE_NAME)
 
+run_no_flags: build_no_flags copy_raylib
+	@./$(BIN_DIR)/$(EXE_NAME)
+
 run_no_build:
 	@./$(BIN_DIR)/$(EXE_NAME)
 
 build: create
 	@echo Staring to build executable, please wait...
 	@go build -o ./$(BIN_DIR)/$(EXE_NAME) $(BUILD_FLAGS) main.go
+	@echo Executable built successfully.
+
+build_no_flags: create
+	@echo Staring to build executable, please wait...
+	@go build -o ./$(BIN_DIR)/$(EXE_NAME) main.go
 	@echo Executable built successfully.
 
 copy_raylib: create
