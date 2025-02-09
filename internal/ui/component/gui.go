@@ -8,71 +8,8 @@ import (
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
-var (
-	guiAlpha     = float32(1)
-	itemFocused  = -1
-	useScrollBar = false
-
-	guiFont  = raygui.GetFont()
-	guiState = raygui.GetState()
-
-	wrapMode = int32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_WRAP_MODE))
-
-	textSize    = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_SIZE))
-	textPadding = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_PADDING))
-	textSpacing = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_SPACING))
-	lineSpacing = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_LINE_SPACING))
-
-	borderWidth = float32(raygui.GetStyle(raygui.DEFAULT, raygui.BORDER_WIDTH))
-
-	listItemHeight  = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.LIST_ITEMS_HEIGHT))
-	listItemSpacing = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.LIST_ITEMS_SPACING))
-	listScrollWidth = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.SCROLLBAR_WIDTH))
-
-	listBorderWidth = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_WIDTH))
-	// listItemBorderWidth = float32(raygui.GetStyle(raygui.LISTVIEW, 20)) // LIST_ITEMS_BORDER_WIDTH
-
-	backgroundColor = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.BACKGROUND_COLOR)))
-	// listBorderColorNormal  = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_COLOR_NORMAL)))
-	// listTextColorDisabled  = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_DISABLED)))
-	listBorderColorFocused = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_COLOR_FOCUSED)))
-	listBaseColorFocused   = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BASE_COLOR_FOCUSED)))
-	listTextColorFocused   = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_FOCUSED)))
-	listTextColorNormal    = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_NORMAL)))
-)
-
-func updateVariables() {
-	guiFont = raygui.GetFont()
-	guiState = raygui.GetState()
-
-	wrapMode = int32(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE))
-
-	textSize = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_SIZE))
-	textPadding = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_PADDING))
-	textSpacing = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_SPACING))
-	lineSpacing = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_LINE_SPACING))
-
-	borderWidth = float32(raygui.GetStyle(raygui.DEFAULT, raygui.BORDER_WIDTH))
-
-	listItemHeight = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.LIST_ITEMS_HEIGHT))
-	listItemSpacing = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.LIST_ITEMS_SPACING))
-	listScrollWidth = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.SCROLLBAR_WIDTH))
-
-	listBorderWidth = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_WIDTH))
-	// listItemBorderWidth = float32(raygui.GetStyle(raygui.LISTVIEW, 20))
-
-	backgroundColor = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.BACKGROUND_COLOR)))
-	// listBorderColorNormal = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_COLOR_NORMAL)))
-	// listTextColorDisabled = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_DISABLED)))
-	listBorderColorFocused = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_COLOR_FOCUSED)))
-	listBaseColorFocused = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BASE_COLOR_FOCUSED)))
-	listTextColorFocused = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_FOCUSED)))
-	listTextColorNormal = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_NORMAL)))
-}
-
 func GuiListViewEx(messages []string, bounds raylib.Rectangle, scrollIndex *int32) {
 	GuiListViewInternal(messages, bounds, scrollIndex)
-	// test(messages)
 }
 
 func GuiListViewInternal(messages []string, bounds raylib.Rectangle, scrollIndex *int32) {
@@ -204,7 +141,7 @@ func GuiDrawText(text string, textBounds raylib.Rectangle, tint color.RGBA) {
 	if text == "" {
 		return
 	} // Security check
-	tint = GuiFade(tint, guiAlpha)
+	tint = raylib.Fade(tint, 1)
 
 	lineCount := int64(0)
 	lines := GetTextLines(text, &lineCount)
@@ -326,33 +263,13 @@ func GetTextLines(text string, count *int64) []string {
 	return lines
 }
 
-func GuiFade(color color.RGBA, alpha float32) color.RGBA {
-	if alpha < 0 {
-		alpha = 0
-	} else if alpha > 1 {
-		alpha = 1
-	}
-
-	return raylib.NewColor(color.R, color.G, color.B, uint8(float32(color.A)*alpha))
-}
-
-func GuiDrawRectangle(rec raylib.Rectangle, borderWidth float32, borderColor, color color.RGBA) {
-	x := int32(rec.X)
-	y := int32(rec.Y)
-	width := int32(rec.Width)
-	height := int32(rec.Height)
-	border := int32(borderWidth)
-	if color.A > 0 {
-		// Draw rectangle filled with color
-		raylib.DrawRectangle(x, y, width, height, GuiFade(color, guiAlpha))
-	}
+func GuiDrawRectangle(rec raylib.Rectangle, borderWidth float32, borderColor, fillColor color.RGBA) {
+	// Draw rectangle filled with color
+	raylib.DrawRectangleRec(rec, fillColor)
 
 	if borderWidth > 0 {
 		// Draw rectangle border lines with color
-		raylib.DrawRectangle(x, y, width, border, GuiFade(borderColor, guiAlpha))
-		raylib.DrawRectangle(x, y+border, border, height-2*border, GuiFade(borderColor, guiAlpha))
-		raylib.DrawRectangle(x+width-border, y+border, border, height-2*border, GuiFade(borderColor, guiAlpha))
-		raylib.DrawRectangle(x, y+height-border, width, border, GuiFade(borderColor, guiAlpha))
+		raylib.DrawRectangleLinesEx(rec, borderWidth, borderColor)
 	}
 }
 

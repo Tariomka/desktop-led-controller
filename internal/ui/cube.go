@@ -1,10 +1,11 @@
-package component
+package ui
 
 import (
 	"image/color"
 	"iter"
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
+	"github.com/Tariomka/desktop-led-controller/internal/ui/component"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -24,7 +25,7 @@ type CubeGrid struct {
 	collision raylib.RayCollision
 }
 
-func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) Renderer {
+func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) component.Renderer {
 	sizeX := 1 + size.X
 	sizeY := 1 + size.Y
 	sizeZ := 1 + size.Z

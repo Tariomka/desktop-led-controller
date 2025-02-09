@@ -39,7 +39,7 @@ func NewWindow(configFuncs ...WindowConfigFunc) *Window {
 		width:  config.WindowWidth,
 		height: config.WindowHeight,
 
-		cubeGrid: component.NewCubeGrid(
+		cubeGrid: NewCubeGrid(
 			config.CubeBaseSize,
 			config.CubeBaseSize,
 			config.CubeHeight,
@@ -51,7 +51,7 @@ func (w *Window) Start() {
 	raylib.SetConfigFlags(raylib.FlagWindowResizable)
 	raylib.InitWindow(w.width, w.height, "Led Cube Controller")
 	raylib.SetTargetFPS(60)
-	w.hud = component.NewPanelControler()
+	w.hud = NewPanelControler()
 
 	for !global.WindowShouldClose {
 		global.WindowShouldClose = raylib.WindowShouldClose()

@@ -6,23 +6,6 @@ import (
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
-type Element interface {
-	Renderer
-}
-
-func NewElement[T Element]() Element {
-	var placeholder T
-	switch any(placeholder).(type) {
-	case *ExitDialog:
-		raylib.SetExitKey(0)
-		return &ExitDialog{}
-	case *MessageListView:
-		return &MessageListView{}
-	default:
-		return nil
-	}
-}
-
 type ExitDialog struct{ show bool }
 
 func (ed *ExitDialog) Update() {
