@@ -1,4 +1,4 @@
-package component
+package style
 
 import (
 	_ "embed"
@@ -7,12 +7,12 @@ import (
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
-var (
-	itemFocused  = -1
-	useScrollBar = false
+//go:embed style.rgs
+var style []byte
 
-	guiFont  = raygui.GetFont()
-	guiState = raygui.GetState()
+var (
+	GuiFont  = raygui.GetFont()
+	GuiState = raygui.GetState()
 
 	wrapMode = int32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_WRAP_MODE))
 
@@ -39,9 +39,13 @@ var (
 	listTextColorNormal    = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_NORMAL)))
 )
 
+var ()
+var ()
+var ()
+
 func UpdateStyle() {
-	guiFont = raygui.GetFont()
-	guiState = raygui.GetState()
+	GuiFont = raygui.GetFont()
+	GuiState = raygui.GetState()
 
 	wrapMode = int32(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE))
 
@@ -67,9 +71,6 @@ func UpdateStyle() {
 	listTextColorFocused = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_FOCUSED)))
 	listTextColorNormal = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_NORMAL)))
 }
-
-//go:embed style.rgs
-var style []byte
 
 func LoadStyle() {
 	// Base style
