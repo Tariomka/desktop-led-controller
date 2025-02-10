@@ -6,9 +6,16 @@ import (
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
-type ExitDialog struct{ show bool }
+type ExitDialog struct {
+	show                      bool
+	width, height             float32
+	screenWidth, screenHeight int
+}
 
 func (ed *ExitDialog) Update() {
+	ed.screenWidth = raylib.GetScreenWidth()
+	ed.screenHeight = raylib.GetScreenHeight()
+
 	if raylib.IsKeyPressed(raylib.KeyEscape) {
 		ed.show = !ed.show
 	}
@@ -16,20 +23,11 @@ func (ed *ExitDialog) Update() {
 
 func (ed *ExitDialog) Render() {
 	if ed.show {
-		raylib.DrawRectangle(
-			0,
-			0,
-			int32(raylib.GetScreenWidth()),
-			int32(raylib.GetScreenHeight()),
-			raylib.Fade(raylib.Black, 0.7))
+		raylib.DrawRectangle(0, 0, int32(ed.screenWidth), int32(ed.screenHeight), raylib.Fade(raylib.Black, 0.7))
 
+		pos := raylib.NewVector2((float32(ed.screenWidth)-ed.width)/2, (float32(ed.screenHeight)-ed.height)/2)
 		result := raygui.MessageBox(
-			raylib.Rectangle{
-				X:      float32(raylib.GetScreenWidth())/2 - 125,
-				Y:      float32(raylib.GetScreenHeight())/2 - 50,
-				Width:  250,
-				Height: 100,
-			},
+			raylib.NewRectangle(pos.X, pos.Y, ed.width, ed.height),
 			raygui.IconText(raygui.ICON_EXIT, "Close Window"),
 			"Do you really want to exit?",
 			"Yes;No")
@@ -38,7 +36,7 @@ func (ed *ExitDialog) Render() {
 			result = 1
 		}
 
-		if (result == 0) || (result == 2) {
+		if result == 0 || result == 2 {
 			ed.show = false
 		} else if result == 1 {
 			global.WindowShouldClose = true

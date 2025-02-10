@@ -51,8 +51,18 @@ func (w *Window) Start() {
 	raylib.SetConfigFlags(raylib.FlagWindowResizable)
 	raylib.InitWindow(w.width, w.height, "Led Cube Controller")
 	raylib.SetTargetFPS(60)
+
+	// Try move to factory and use update update style seperately?
 	w.hud = NewPanelControler()
 
+	w.renderLoop()
+}
+
+func (w *Window) Stop() {
+	raylib.CloseWindow()
+}
+
+func (w *Window) renderLoop() {
 	for !global.WindowShouldClose {
 		global.WindowShouldClose = raylib.WindowShouldClose()
 
@@ -66,8 +76,4 @@ func (w *Window) Start() {
 
 		raylib.EndDrawing()
 	}
-}
-
-func (w *Window) Stop() {
-	raylib.CloseWindow()
 }

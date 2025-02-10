@@ -85,6 +85,8 @@ type ConsolePanel struct {
 	maxMessageCount uint16
 	test            int
 	scroll          int32
+	itemFocused     int
+	useScrollBar    bool
 }
 
 func (cp *ConsolePanel) Update() {
@@ -121,16 +123,4 @@ func (pp *PlaceholderPanel) Update() { pp.resize() }
 
 func (pp *PlaceholderPanel) Render() {
 	raygui.Panel(raylib.NewRectangle(pp.Pos.X, pp.Pos.Y, pp.Width, pp.Height), "")
-}
-
-type NamedPanel struct {
-	Renderer
-	Title string
-}
-
-func NewNamedPanel[T Renderer](title string, panelConfig ...PanelConfigFunc) NamedPanel {
-	return NamedPanel{
-		Renderer: NewPanel[T](panelConfig...),
-		Title:    title,
-	}
 }

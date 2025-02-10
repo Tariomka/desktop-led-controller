@@ -4,6 +4,18 @@ import raylib "github.com/gen2brain/raylib-go/raylib"
 
 type PanelConfigFunc func(*PanelBase)
 
+type NamedPanel struct {
+	Renderer
+	Title string
+}
+
+func NewNamedPanel[T Renderer](title string, panelConfig ...PanelConfigFunc) NamedPanel {
+	return NamedPanel{
+		Renderer: NewPanel[T](panelConfig...),
+		Title:    title,
+	}
+}
+
 func NewPanel[T Renderer](panelConfig ...PanelConfigFunc) Renderer {
 	base := defaultPanelBase()
 	for _, config := range panelConfig {
@@ -27,6 +39,8 @@ func NewPanel[T Renderer](panelConfig ...PanelConfigFunc) Renderer {
 			PanelBase:       base,
 			messages:        make([]string, 0),
 			maxMessageCount: 100,
+			itemFocused:     -1,
+			useScrollBar:    false,
 		}
 	case *PlaceholderPanel:
 		return &PlaceholderPanel{PanelBase: base}
@@ -40,7 +54,10 @@ func NewElement[T Renderer]() Renderer {
 	switch any(placeholder).(type) {
 	case *ExitDialog:
 		raylib.SetExitKey(0)
-		return &ExitDialog{}
+		return &ExitDialog{
+			width:  250,
+			height: 100,
+		}
 	case *MessageListView:
 		return &MessageListView{}
 	default:

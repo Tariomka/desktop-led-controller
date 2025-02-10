@@ -4,6 +4,7 @@ import (
 	"iter"
 
 	"github.com/Tariomka/desktop-led-controller/internal/ui/component"
+	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
 )
 
 type PanelControler struct {
@@ -15,6 +16,15 @@ type PanelControler struct {
 	dialogs []component.Renderer
 }
 
+// Creates controller for all panels shown on screen.
+//
+// This controller should be created only after raylib window is initialized
+// as panels could possibly use unitialized window parameters.
+//
+// See:
+//
+//	import rl "github.com/gen2brain/raylib-go/raylib"
+//	rl.InitWindow(...)
 func NewPanelControler(panelConfig ...component.PanelConfigFunc) component.Renderer {
 	navBarHeight := float32(24)
 	navBarConfig := append(panelConfig, func(pb *component.PanelBase) { pb.Height = navBarHeight })
@@ -38,6 +48,7 @@ func NewPanelControler(panelConfig ...component.PanelConfigFunc) component.Rende
 		},
 	}
 
+	// Move to customizations
 	controller.navBar.(*component.NavigationPanel).SetParent(controller)
 	controller.setStyle()
 	return controller
@@ -78,6 +89,6 @@ func (pc *PanelControler) IteratePanels() iter.Seq2[string, component.Renderer] 
 func (pc *PanelControler) PanelCount() int { return len(pc.panels) }
 
 func (pc *PanelControler) setStyle() {
-	component.LoadStyle()
-	component.UpdateStyle()
+	style.LoadStyle()
+	style.UpdateStyle()
 }
