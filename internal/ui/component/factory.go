@@ -37,10 +37,11 @@ func NewPanel[T Renderer](panelConfig ...PanelConfigFunc) Renderer {
 	case *ConsolePanel:
 		return &ConsolePanel{
 			PanelBase:       base,
+			padding:         raylib.NewVector2(10, 10),
 			messages:        make([]string, 0),
 			maxMessageCount: 100,
 			itemFocused:     -1,
-			useScrollBar:    false,
+			useScrollbar:    false,
 		}
 	case *PlaceholderPanel:
 		return &PlaceholderPanel{PanelBase: base}

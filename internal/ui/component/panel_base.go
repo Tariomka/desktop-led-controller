@@ -2,10 +2,7 @@ package component
 
 import raylib "github.com/gen2brain/raylib-go/raylib"
 
-type PanelBase struct {
-	Pos           raylib.Vector2
-	Width, Height float32
-}
+type PanelBase struct{ raylib.Rectangle }
 
 // Default calculates properties with respect to window size, which only works after raylib init is called.
 // See:
@@ -15,23 +12,25 @@ type PanelBase struct {
 func defaultPanelBase() PanelBase {
 	panelWidth := float32(raylib.GetScreenWidth()) / 4
 	return PanelBase{
-		Pos:    raylib.NewVector2(float32(raylib.GetScreenWidth())-panelWidth, 0),
-		Width:  panelWidth,
-		Height: float32(raylib.GetScreenHeight()),
+		Rectangle: raylib.NewRectangle(
+			float32(raylib.GetScreenWidth())-panelWidth,
+			0,
+			panelWidth,
+			float32(raylib.GetScreenHeight())),
 	}
 }
 
 func (pb *PanelBase) resize(additionalResizes ...func()) {
 	if raylib.IsWindowResized() {
-		previousPosition := pb.Pos
+		previousPosX, previousPosY := pb.X, pb.Y
 		panelWidth := float32(raylib.GetScreenWidth()) / 4
 
-		if previousPosition.X > 0 {
+		if previousPosX > 0 {
 			pb.Width = panelWidth
-			pb.Pos.X = float32(raylib.GetScreenWidth()) - panelWidth
+			pb.X = float32(raylib.GetScreenWidth()) - panelWidth
 		}
-		if previousPosition.Y > 0 {
-			pb.Height = float32(raylib.GetScreenHeight()) - previousPosition.Y
+		if previousPosY > 0 {
+			pb.Height = float32(raylib.GetScreenHeight()) - previousPosY
 		}
 
 		for _, callback := range additionalResizes {

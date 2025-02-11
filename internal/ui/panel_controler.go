@@ -31,7 +31,7 @@ func NewPanelControler(panelConfig ...component.PanelConfigFunc) component.Rende
 	panelConfig = append(
 		panelConfig,
 		func(pb *component.PanelBase) {
-			pb.Pos.Y += navBarHeight
+			pb.Y += navBarHeight
 			pb.Height -= navBarHeight
 		})
 

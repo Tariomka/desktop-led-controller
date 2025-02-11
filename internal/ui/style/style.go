@@ -2,6 +2,7 @@ package style
 
 import (
 	_ "embed"
+	"image/color"
 
 	"github.com/gen2brain/raylib-go/raygui"
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -10,66 +11,89 @@ import (
 //go:embed style.rgs
 var style []byte
 
+// General raygui global state
 var (
 	GuiFont  = raygui.GetFont()
 	GuiState = raygui.GetState()
-
-	wrapMode = int32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_WRAP_MODE))
-
-	textSize    = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_SIZE))
-	textPadding = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_PADDING))
-	textSpacing = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_SPACING))
-	lineSpacing = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_LINE_SPACING))
-
-	borderWidth = float32(raygui.GetStyle(raygui.DEFAULT, raygui.BORDER_WIDTH))
-
-	listItemHeight  = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.LIST_ITEMS_HEIGHT))
-	listItemSpacing = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.LIST_ITEMS_SPACING))
-	listScrollWidth = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.SCROLLBAR_WIDTH))
-
-	listBorderWidth = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_WIDTH))
-	// listItemBorderWidth = float32(raygui.GetStyle(raygui.LISTVIEW, 20)) // LIST_ITEMS_BORDER_WIDTH
-
-	backgroundColor = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.BACKGROUND_COLOR)))
-	// listBorderColorNormal  = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_COLOR_NORMAL)))
-	// listTextColorDisabled  = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_DISABLED)))
-	listBorderColorFocused = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_COLOR_FOCUSED)))
-	listBaseColorFocused   = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BASE_COLOR_FOCUSED)))
-	listTextColorFocused   = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_FOCUSED)))
-	listTextColorNormal    = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_NORMAL)))
 )
 
-var ()
-var ()
-var ()
+// General styling
+var (
+	BorderWidth = float32(raygui.GetStyle(raygui.DEFAULT, raygui.BORDER_WIDTH))
+)
+
+// General text styling
+var (
+	WrapMode = int32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_WRAP_MODE))
+
+	TextSize        = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_SIZE))
+	TextPadding     = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_PADDING))
+	TextSpacing     = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_SPACING))
+	TextLineSpacing = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_LINE_SPACING))
+)
+
+// List styling
+var (
+	ListBorderWidth = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_WIDTH))
+	ListScrollWidth = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.SCROLLBAR_WIDTH))
+)
+
+// List item styling
+var (
+	ListItemHeight  = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.LIST_ITEMS_HEIGHT))
+	ListItemSpacing = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.LIST_ITEMS_SPACING))
+)
+
+// General colors
+var (
+	BackgroundColor = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.BACKGROUND_COLOR)))
+)
+
+// List item colors
+var (
+	ListBaseColorFocused   = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BASE_COLOR_FOCUSED)))
+	ListBorderColorFocused = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_COLOR_FOCUSED)))
+)
+
+// List item text colors
+var (
+	ListTextColorFocused = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_FOCUSED)))
+	ListTextColorNormal  = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_NORMAL)))
+)
 
 func UpdateStyle() {
+	// General raygui global state
 	GuiFont = raygui.GetFont()
 	GuiState = raygui.GetState()
 
-	wrapMode = int32(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE))
+	// General styling
+	BorderWidth = float32(raygui.GetStyle(raygui.DEFAULT, raygui.BORDER_WIDTH))
 
-	textSize = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_SIZE))
-	textPadding = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_PADDING))
-	textSpacing = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_SPACING))
-	lineSpacing = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_LINE_SPACING))
+	// General text styling
+	WrapMode = int32(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE))
+	TextSize = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_SIZE))
+	TextPadding = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_PADDING))
+	TextSpacing = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_SPACING))
+	TextLineSpacing = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_LINE_SPACING))
 
-	borderWidth = float32(raygui.GetStyle(raygui.DEFAULT, raygui.BORDER_WIDTH))
+	// List styling
+	ListScrollWidth = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.SCROLLBAR_WIDTH))
+	ListBorderWidth = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_WIDTH))
 
-	listItemHeight = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.LIST_ITEMS_HEIGHT))
-	listItemSpacing = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.LIST_ITEMS_SPACING))
-	listScrollWidth = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.SCROLLBAR_WIDTH))
+	// List item styling
+	ListItemHeight = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.LIST_ITEMS_HEIGHT))
+	ListItemSpacing = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.LIST_ITEMS_SPACING))
 
-	listBorderWidth = float32(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_WIDTH))
-	// listItemBorderWidth = float32(raygui.GetStyle(raygui.LISTVIEW, 20))
+	// General colors
+	BackgroundColor = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.BACKGROUND_COLOR)))
 
-	backgroundColor = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.BACKGROUND_COLOR)))
-	// listBorderColorNormal = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_COLOR_NORMAL)))
-	// listTextColorDisabled = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_DISABLED)))
-	listBorderColorFocused = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_COLOR_FOCUSED)))
-	listBaseColorFocused = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BASE_COLOR_FOCUSED)))
-	listTextColorFocused = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_FOCUSED)))
-	listTextColorNormal = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_NORMAL)))
+	// List item colors
+	ListBaseColorFocused = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BASE_COLOR_FOCUSED)))
+	ListBorderColorFocused = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_COLOR_FOCUSED)))
+
+	// List item text colors
+	ListTextColorFocused = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_FOCUSED)))
+	ListTextColorNormal = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_COLOR_NORMAL)))
 }
 
 func LoadStyle() {
@@ -86,4 +110,19 @@ func LoadStyle() {
 	raygui.SetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE, 0)
 	// raygui.SetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE, raygui.TEXT_WRAP_CHAR)
 	// raygui.SetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE, raygui.TEXT_WRAP_WORD)
+}
+
+func GetListBorderColor() color.RGBA {
+	return raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_COLOR_NORMAL+GuiState*3)))
+}
+
+func GetScrollbarStyle() (sliderSize int64, scrollSpeed int64) {
+	sliderSize = raygui.GetStyle(raygui.SCROLLBAR, raygui.SCROLL_SLIDER_SIZE)
+	scrollSpeed = raygui.GetStyle(raygui.SCROLLBAR, raygui.SCROLL_SPEED)
+	return sliderSize, scrollSpeed
+}
+
+func SetScrollbarStyle(sliderSize int64, scrollSpeed int64) {
+	raygui.SetStyle(raygui.SCROLLBAR, raygui.SCROLL_SLIDER_SIZE, sliderSize)
+	raygui.SetStyle(raygui.SCROLLBAR, raygui.SCROLL_SPEED, scrollSpeed)
 }
