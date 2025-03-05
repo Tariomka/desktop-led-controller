@@ -3,6 +3,7 @@ package component
 import (
 	"fmt"
 
+	"github.com/Tariomka/desktop-led-controller/internal/common"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/utils"
 	"github.com/gen2brain/raylib-go/raygui"
@@ -14,10 +15,7 @@ type ConsolePanel struct {
 	padding       raylib.Vector2
 	messageBounds raylib.Rectangle
 
-	// would be nice to have a ring buffer or something
-	messages         []string
-	maxMessageCount  uint16
-	messageCount     int
+	messages         *common.RingArray[string]
 	visibleLineCount int
 
 	test int
@@ -38,17 +36,16 @@ func (cp *ConsolePanel) Update() {
 		cp.Y+style.ListItemSpacing+style.BorderWidth,
 		cp.Width-2*style.ListItemSpacing-style.BorderWidth,
 		style.ListItemHeight)
-	cp.messageCount = len(cp.messages)
 
-	if (style.ListItemHeight+style.ListItemSpacing)*float32(cp.messageCount) > cp.Height {
+	if (style.ListItemHeight+style.ListItemSpacing)*float32(cp.messages.Length()) > cp.Height {
 		cp.useScrollbar = true
 		cp.messageBounds.Width -= style.ListScrollWidth
 	}
 
 	cp.visibleLineCount = min(
 		int(cp.Height/(style.ListItemHeight+style.ListItemSpacing)),
-		cp.messageCount)
-	if cp.currentScrollIndex < 0 || cp.currentScrollIndex > cp.messageCount-cp.visibleLineCount {
+		cp.messages.Length())
+	if cp.currentScrollIndex < 0 || cp.currentScrollIndex > cp.messages.Length()-cp.visibleLineCount {
 		cp.currentScrollIndex = 0
 	}
 	cp.endScrollIndex = cp.currentScrollIndex + cp.visibleLineCount
@@ -93,10 +90,10 @@ func (cp *ConsolePanel) updateScrollIndex() {
 	cp.currentScrollIndex -= int(raylib.GetMouseWheelMove())
 	if cp.currentScrollIndex < 0 {
 		cp.currentScrollIndex = 0
-	} else if cp.currentScrollIndex > (cp.messageCount - cp.visibleLineCount) {
-		cp.currentScrollIndex = cp.messageCount - cp.visibleLineCount
+	} else if cp.currentScrollIndex > (cp.messages.Length() - cp.visibleLineCount) {
+		cp.currentScrollIndex = cp.messages.Length() - cp.visibleLineCount
 	}
-	cp.endScrollIndex = min(cp.currentScrollIndex+cp.visibleLineCount, cp.messageCount)
+	cp.endScrollIndex = min(cp.currentScrollIndex+cp.visibleLineCount, cp.messages.Length())
 }
 
 func (cp *ConsolePanel) updateScrollbar() {
@@ -104,7 +101,7 @@ func (cp *ConsolePanel) updateScrollbar() {
 		return
 	}
 
-	percentVisible := float32((cp.endScrollIndex - cp.currentScrollIndex)) / float32(cp.messageCount)
+	percentVisible := float32((cp.endScrollIndex - cp.currentScrollIndex)) / float32(cp.messages.Length())
 	cp.scrollbarSliderSize = cp.Height * percentVisible
 }
 
@@ -114,7 +111,9 @@ func (cp *ConsolePanel) renderScrollbar() {
 	}
 
 	prevSliderSize, prevScrollSpeed := style.GetScrollbarStyle()
-	style.SetScrollbarStyle(int64(cp.scrollbarSliderSize), int64(cp.messageCount-cp.visibleLineCount))
+	style.SetScrollbarStyle(
+		int64(cp.scrollbarSliderSize),
+		int64(cp.messages.Length()-cp.visibleLineCount))
 
 	scrollBarBounds := raylib.NewRectangle(
 		cp.X+cp.Width-style.ListBorderWidth-style.ListScrollWidth,
@@ -125,13 +124,13 @@ func (cp *ConsolePanel) renderScrollbar() {
 		scrollBarBounds,
 		int32(cp.currentScrollIndex),
 		0,
-		int32(cp.messageCount-cp.visibleLineCount)))
+		int32(cp.messages.Length()-cp.visibleLineCount)))
 
 	style.SetScrollbarStyle(prevSliderSize, prevScrollSpeed)
 }
 
 func (cp *ConsolePanel) renderMessages() {
-	if cp.messageCount < 1 {
+	if cp.messages.Length() < 1 {
 		return
 	}
 
@@ -148,7 +147,7 @@ func (cp *ConsolePanel) renderMessages() {
 		}
 
 		utils.RenderText(
-			cp.messages[cp.currentScrollIndex+i],
+			cp.messages.Get(cp.currentScrollIndex+i),
 			utils.GetTextBounds(cp.messageBounds),
 			textColor)
 
@@ -161,9 +160,6 @@ func (cp *ConsolePanel) renderMessages() {
 func (cp *ConsolePanel) testData() {
 	cp.test++
 	if cp.test%50 == 0 {
-		cp.messages = append([]string{fmt.Sprintf("Message #%d: some ; aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", cp.test)}, cp.messages...)
-	}
-	if len(cp.messages) > int(cp.maxMessageCount) {
-		cp.messages = cp.messages[:cp.maxMessageCount]
+		cp.messages.Add(fmt.Sprintf("Message #%d: some ; aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", cp.test))
 	}
 }

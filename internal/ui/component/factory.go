@@ -1,6 +1,9 @@
 package component
 
-import raylib "github.com/gen2brain/raylib-go/raylib"
+import (
+	"github.com/Tariomka/desktop-led-controller/internal/common"
+	raylib "github.com/gen2brain/raylib-go/raylib"
+)
 
 type PanelConfigFunc func(*PanelBase)
 
@@ -36,12 +39,11 @@ func NewPanel[T Renderer](panelConfig ...PanelConfigFunc) Renderer {
 		return &MenuPanel{PanelBase: base}
 	case *ConsolePanel:
 		return &ConsolePanel{
-			PanelBase:       base,
-			padding:         raylib.NewVector2(10, 10),
-			messages:        make([]string, 0),
-			maxMessageCount: 100,
-			itemFocused:     -1,
-			useScrollbar:    false,
+			PanelBase:    base,
+			padding:      raylib.NewVector2(10, 10),
+			messages:     common.NewRingArray[string](100),
+			itemFocused:  -1,
+			useScrollbar: false,
 		}
 	case *PlaceholderPanel:
 		return &PlaceholderPanel{PanelBase: base}
@@ -64,14 +66,4 @@ func NewElement[T Renderer]() Renderer {
 	default:
 		panic("wrong renderer type")
 	}
-}
-
-type GenericPanelConfigFunc[T Renderer] func(Renderer)
-
-func test[T Renderer](configs ...GenericPanelConfigFunc[T]) []GenericPanelConfigFunc[T] {
-	return append(
-		configs,
-		func(r Renderer) {
-			r.(*ConsolePanel).maxMessageCount = 100
-		})
 }
