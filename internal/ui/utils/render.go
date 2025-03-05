@@ -25,16 +25,11 @@ func RenderText(text string, textBounds raylib.Rectangle, textColor color.RGBA) 
 
 	// TODO: WARNING: This totalHeight is not valid for vertical alignment in case of word-wrap
 	totalHeight := float32(lineCount)*style.TextSize + float32(lineCount-1)*style.TextSize/2
-	posOffsetY := float32(0)
+	textOffset := raylib.NewVector2(0, 0)
 
 	for _, line := range lines {
-		textOffset := raylib.NewVector2(0, 0)
-		renderStringEx(line, textBounds, &textOffset, posOffsetY, totalHeight, textColor)
-
-		posOffsetY += style.TextLineSpacing
-		if style.WrapMode != raygui.TEXT_WRAP_NONE {
-			posOffsetY += textOffset.Y
-		}
+		textOffset.X = 0
+		renderStringEx(line, textBounds, &textOffset, totalHeight, textColor)
 	}
 }
 
@@ -52,12 +47,11 @@ func RenderRectangle(rec raylib.Rectangle, borderWidth float32, borderColor, fil
 // 	renderStringEx(text, textBounds)
 // }
 
-func renderStringEx(text string, textBounds raylib.Rectangle, textOffset *raylib.Vector2, posOffsetY, totalHeight float32, textColor color.RGBA) {
+func renderStringEx(text string, textBounds raylib.Rectangle, textOffset *raylib.Vector2, totalHeight float32, textColor color.RGBA) {
 	// NOTE: Make sure we get pixel-perfect coordinates, In case of decimals we got weird text positioning
 	textBoundsPosition := raylib.NewVector2(
 		float32(int(textBounds.X)),
 		float32(int(textBounds.Y+
-			posOffsetY+
 			textBounds.Height/2-
 			totalHeight/2+
 			float32(int(textBounds.Height)%2))))
