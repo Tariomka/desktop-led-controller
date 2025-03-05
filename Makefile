@@ -11,15 +11,16 @@ else
 	EXE_NAME = desktop_app
 endif
 
-run: build copy_raylib
+run_no_flags: build_no_flags copy_raylib
 	@./$(BIN_DIR)/$(EXE_NAME)
 
-run_no_flags: build_no_flags copy_raylib
+run: build copy_raylib
 	@./$(BIN_DIR)/$(EXE_NAME)
 
 run_no_build:
 	@./$(BIN_DIR)/$(EXE_NAME)
 
+# Does not work on linux because of BUILD_FLAGS
 build: create
 	@echo Staring to build executable, please wait...
 	@go build -o ./$(BIN_DIR)/$(EXE_NAME) $(BUILD_FLAGS) main.go
@@ -31,10 +32,10 @@ build_no_flags: create
 	@echo Executable built successfully.
 
 copy_raylib: create
-	@if not exist ./$(BIN_DIR)/$(RAYLIB) $(CP) $(RAYLIB) $(BIN_DIR)
+	@if [ ! -a ./$(BIN_DIR)/$(RAYLIB) ]; then $(CP) $(RAYLIB) $(BIN_DIR); fi
 
 create:
-	@if not exist $(BIN_DIR) mkdir $(BIN_DIR)
+	@if [ ! -d $(BIN_DIR) ]; then mkdir $(BIN_DIR); fi
 
 clean:
 	@$(RM) $(BIN_DIR)

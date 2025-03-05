@@ -3,83 +3,11 @@ package component
 import (
 	"fmt"
 
-	"github.com/Tariomka/desktop-led-controller/internal/common"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/utils"
 	"github.com/gen2brain/raylib-go/raygui"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
-
-type NavigationPanel struct {
-	PanelBase
-	parent       PanelSelector
-	buttonWidth  float32
-	buttonStates []bool
-	index        int
-}
-
-func (nav *NavigationPanel) SetParent(parent PanelSelector) {
-	nav.parent = parent
-	panelCount := nav.parent.PanelCount()
-	nav.buttonWidth = nav.Width / float32(panelCount)
-	nav.buttonStates = make([]bool, panelCount)
-}
-
-func (nav *NavigationPanel) Update() {
-	nav.resize(func() { nav.buttonWidth = nav.Width / float32(len(nav.buttonStates)) })
-}
-
-func (nav *NavigationPanel) Render() {
-	nav.index = 0
-	for name, panel := range nav.parent.IteratePanels() {
-		// TODO: Add tooltip to buttons.
-		// Note: raygui-go does not have tooltip bindings so probably need to implement by hand.
-		bounds := raylib.NewRectangle(
-			nav.X+float32(nav.index)*nav.buttonWidth,
-			nav.Y,
-			nav.buttonWidth,
-			nav.Height)
-
-		if !raygui.Button(bounds, name) {
-			if nav.buttonStates[nav.index] {
-				raylib.DrawRectangleRec(
-					bounds,
-					common.IntToRGBAEx(
-						raygui.GetStyle(raygui.BUTTON, raygui.BASE_COLOR_PRESSED),
-						125))
-				raylib.DrawRectangleLinesEx(
-					bounds,
-					float32(raygui.GetStyle(raygui.BUTTON, raygui.BORDER_WIDTH)),
-					common.IntToRGBAEx(
-						raygui.GetStyle(raygui.BUTTON, raygui.BORDER_COLOR_PRESSED),
-						230))
-			}
-
-			nav.index++
-			continue
-		}
-
-		previousState := nav.buttonStates[nav.index]
-		for i := range nav.buttonStates {
-			nav.buttonStates[i] = false
-		}
-		nav.buttonStates[nav.index] = !previousState
-		if nav.buttonStates[nav.index] {
-			nav.parent.SetSelectedPanel(panel)
-		} else {
-			nav.parent.SetSelectedPanel(nil)
-		}
-		nav.index++
-	}
-}
-
-type MenuPanel struct{ PanelBase }
-
-func (menu *MenuPanel) Update() { menu.resize() }
-
-func (menu *MenuPanel) Render() {
-	raygui.Panel(raylib.NewRectangle(menu.X, menu.Y, menu.Width, menu.Height), "")
-}
 
 type ConsolePanel struct {
 	PanelBase
@@ -176,13 +104,13 @@ func (cp *ConsolePanel) Update() {
 
 	if cp.useScrollbar {
 		// Calculate percentage of visible items and apply same percentage to scrollbar
-		percentVisible := float32((endIndex - cp.scrollIndex) / cp.messageCount)
+		percentVisible := float32((endIndex - cp.scrollIndex)) / float32(cp.messageCount)
 		cp.scrollbarSliderSize = cp.Height * percentVisible
 	}
 }
 
 func (cp *ConsolePanel) Render() {
-	raygui.Panel(cp.Rectangle, "")
+	cp.renderPanel()
 
 	// Draw visible items
 	for i := 0; (i < cp.visibleLineCount) && (cp.messageCount > 0); i++ {
@@ -242,20 +170,4 @@ func (cp *ConsolePanel) testData() {
 	if len(cp.messages) > int(cp.maxMessageCount) {
 		cp.messages = cp.messages[:cp.maxMessageCount]
 	}
-}
-
-type EditPanel struct{ PanelBase }
-
-func (ep *EditPanel) Update() { ep.resize() }
-
-func (ep *EditPanel) Render() {
-	raygui.Panel(raylib.NewRectangle(ep.X, ep.Y, ep.Width, ep.Height), "")
-}
-
-type PlaceholderPanel struct{ PanelBase }
-
-func (pp *PlaceholderPanel) Update() { pp.resize() }
-
-func (pp *PlaceholderPanel) Render() {
-	raygui.Panel(raylib.NewRectangle(pp.X, pp.Y, pp.Width, pp.Height), "")
 }
