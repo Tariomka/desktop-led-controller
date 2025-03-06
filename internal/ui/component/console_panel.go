@@ -12,7 +12,6 @@ import (
 
 type ConsolePanel struct {
 	PanelBase
-	padding       raylib.Vector2
 	messageBounds raylib.Rectangle
 
 	messages         *common.RingArray[string]
@@ -28,13 +27,13 @@ type ConsolePanel struct {
 }
 
 func (cp *ConsolePanel) Update() {
-	cp.testData() // to be deleted
+	cp.testData() // FIXME: to be deleted
 	cp.resize()
 
 	cp.messageBounds = raylib.NewRectangle(
 		cp.X+style.ListItemSpacing,
 		cp.Y+style.ListItemSpacing+style.BorderWidth,
-		cp.Width-2*style.ListItemSpacing-style.BorderWidth,
+		cp.Width-style.ListItemSpacing-2*style.BorderWidth,
 		style.ListItemHeight)
 
 	if (style.ListItemHeight+style.ListItemSpacing)*float32(cp.messages.Length()) > cp.Height {
@@ -52,7 +51,6 @@ func (cp *ConsolePanel) Update() {
 
 	if style.GuiState != raygui.STATE_DISABLED && !raygui.IsLocked() {
 		cp.updateScrollIndex()
-		cp.messageBounds.Y = cp.Y + style.ListItemSpacing + style.BorderWidth // Reset message box height
 	}
 
 	cp.updateScrollbar()
@@ -71,17 +69,17 @@ func (cp *ConsolePanel) updateScrollIndex() {
 		return
 	}
 
-	style.GuiState = raygui.STATE_FOCUSED
-
+	initialBoundY := cp.messageBounds.Y
+	messageHeight := style.ListItemHeight + style.ListItemSpacing
 	for i := range cp.visibleLineCount {
 		if raylib.CheckCollisionPointRec(mousePoint, cp.messageBounds) {
 			cp.itemFocused = cp.currentScrollIndex + i
 			break
 		}
 
-		// Update item rectangle y position for next item
-		cp.messageBounds.Y += style.ListItemHeight + style.ListItemSpacing
+		cp.messageBounds.Y += messageHeight // Update message box y position for next message line
 	}
+	cp.messageBounds.Y = initialBoundY // Reset message box Y position
 
 	if !cp.useScrollbar {
 		return
@@ -156,7 +154,7 @@ func (cp *ConsolePanel) renderMessages() {
 	}
 }
 
-// remove later
+// FIXME: remove later
 func (cp *ConsolePanel) testData() {
 	cp.test++
 	if cp.test%50 == 0 {

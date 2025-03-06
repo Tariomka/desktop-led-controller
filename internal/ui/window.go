@@ -3,6 +3,7 @@ package ui
 import (
 	"github.com/Tariomka/desktop-led-controller/internal/ui/component"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
+	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -51,6 +52,7 @@ func (w *Window) Start() {
 	raylib.SetConfigFlags(raylib.FlagWindowResizable)
 	raylib.InitWindow(w.width, w.height, "Led Cube Controller")
 	raylib.SetTargetFPS(60)
+	style.LoadStyle()
 
 	// Try move to factory and use update update style seperately?
 	w.hud = NewPanelControler()

@@ -36,14 +36,15 @@ func NewPanel[T Renderer](panelConfig ...PanelConfigFunc) Renderer {
 	case *EditPanel:
 		return &EditPanel{PanelBase: base}
 	case *MenuPanel:
-		return &MenuPanel{PanelBase: base}
+		return &MenuPanel{
+			PanelBase: base,
+			padding:   raylib.NewVector2(10, 10),
+		}
 	case *ConsolePanel:
 		return &ConsolePanel{
-			PanelBase:    base,
-			padding:      raylib.NewVector2(10, 10),
-			messages:     common.NewRingArray[string](100),
-			itemFocused:  -1,
-			useScrollbar: false,
+			PanelBase:   base,
+			messages:    common.NewRingArray[string](100),
+			itemFocused: -1,
 		}
 	case *PlaceholderPanel:
 		return &PlaceholderPanel{PanelBase: base}

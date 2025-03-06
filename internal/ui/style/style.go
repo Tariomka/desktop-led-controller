@@ -110,6 +110,8 @@ func LoadStyle() {
 	raygui.SetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE, 0)
 	// raygui.SetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE, raygui.TEXT_WRAP_CHAR)
 	// raygui.SetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE, raygui.TEXT_WRAP_WORD)
+
+	UpdateStyle()
 }
 
 func GetListBorderColor() color.RGBA {
