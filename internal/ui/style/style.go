@@ -47,6 +47,7 @@ var (
 // General colors
 var (
 	BackgroundColor = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.BACKGROUND_COLOR)))
+	TextColorNormal = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_COLOR_NORMAL)))
 )
 
 // List item colors
@@ -86,6 +87,7 @@ func UpdateStyle() {
 
 	// General colors
 	BackgroundColor = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.BACKGROUND_COLOR)))
+	TextColorNormal = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_COLOR_NORMAL)))
 
 	// List item colors
 	ListBaseColorFocused = raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BASE_COLOR_FOCUSED)))

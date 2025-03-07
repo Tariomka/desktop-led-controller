@@ -19,13 +19,13 @@ type CubeGrid struct {
 	cubes [][][]*Cube
 	size  raylib.Vector3
 
-	camera *raylib.Camera
-
+	camera    *raylib.Camera
+	screen    raylib.Rectangle
 	ray       raylib.Ray
 	collision raylib.RayCollision
 }
 
-func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) component.Renderer {
+func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3, window raylib.Vector2) component.Renderer {
 	sizeX := 1 + size.X
 	sizeY := 1 + size.Y
 	sizeZ := 1 + size.Z
@@ -70,6 +70,10 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) component.Re
 			Fovy:       float32(yCount)*float32(zCount) - float32(xCount),
 			Projection: raylib.CameraPerspective,
 		},
+		screen: raylib.NewRectangle(
+			0, 0,
+			window.X,
+			window.Y),
 	}
 }
 
@@ -77,10 +81,11 @@ func (cg *CubeGrid) Update() {
 	if global.ShouldChangeColor && raylib.IsMouseButtonPressed(raylib.MouseLeftButton) {
 		cg.updateCollision()
 	}
-	if raylib.IsMouseButtonDown(raylib.MouseLeftButton) {
+
+	if raylib.IsMouseButtonDown(raylib.MouseLeftButton) &&
+		raylib.CheckCollisionPointRec(raylib.GetMousePosition(), cg.screen) {
 		raylib.UpdateCamera(cg.camera, raylib.CameraThirdPerson)
 	}
-
 }
 
 func (cg *CubeGrid) Render() {

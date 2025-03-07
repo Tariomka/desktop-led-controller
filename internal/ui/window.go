@@ -44,7 +44,10 @@ func NewWindow(configFuncs ...WindowConfigFunc) *Window {
 			config.CubeBaseSize,
 			config.CubeBaseSize,
 			config.CubeHeight,
-			raylib.NewVector3(1, 1, 1)),
+			raylib.NewVector3(1, 1, 1),
+			raylib.NewVector2(
+				float32(config.WindowWidth*3/4), // TODO: remove hardcode? defaultPanelBase() has the final part
+				float32(config.WindowHeight))),
 	}
 }
 
@@ -52,9 +55,8 @@ func (w *Window) Start() {
 	raylib.SetConfigFlags(raylib.FlagWindowResizable)
 	raylib.InitWindow(w.width, w.height, "Led Cube Controller")
 	raylib.SetTargetFPS(60)
-	style.LoadStyle()
 
-	// Try move to factory and use update update style seperately?
+	style.LoadStyle()
 	w.hud = NewPanelControler()
 
 	w.renderLoop()
