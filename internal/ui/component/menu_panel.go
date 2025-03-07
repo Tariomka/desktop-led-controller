@@ -56,7 +56,7 @@ func (menu *MenuPanel) renderStatus() {
 		message = "Processing"
 	}
 
-	additionalXPadding := menu.itemBounds.Width / 5
+	additionalXPadding := menu.itemBounds.Width / 4
 	circleCenterXOffset := menu.padding.X + menu.itemBounds.Height/2
 	raylib.DrawCircleGradient(
 		int32(menu.itemBounds.X+circleCenterXOffset+additionalXPadding),
