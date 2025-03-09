@@ -7,25 +7,27 @@ import (
 
 type PanelConfigFunc func(*Panel)
 
+type TypedPanelConfigFunc[Type Renderer] func(*Type)
+
 type NamedPanel struct {
 	Renderer
 	Title string
 }
 
-func NewNamedPanel[T Renderer](title string, panelConfig ...PanelConfigFunc) NamedPanel {
+func NewNamedPanel[Type Renderer](title string, panelConfig ...PanelConfigFunc) NamedPanel {
 	return NamedPanel{
-		Renderer: NewPanel[T](panelConfig...),
+		Renderer: NewPanel[Type](panelConfig...),
 		Title:    title,
 	}
 }
 
-func NewPanel[T Renderer](panelConfig ...PanelConfigFunc) Renderer {
+func NewPanel[Type Renderer](panelConfig ...PanelConfigFunc) Renderer {
 	base := defaultPanel()
 	for _, config := range panelConfig {
 		config(&base)
 	}
 
-	var placeholder T
+	var placeholder Type
 	switch any(placeholder).(type) {
 	case *NavigationPanel:
 		return &NavigationPanel{
@@ -53,8 +55,8 @@ func NewPanel[T Renderer](panelConfig ...PanelConfigFunc) Renderer {
 	}
 }
 
-func NewElement[T Renderer]() Renderer {
-	var placeholder T
+func NewElement[Type Renderer]() Renderer {
+	var placeholder Type
 	switch any(placeholder).(type) {
 	case *ExitDialog:
 		raylib.SetExitKey(0)
