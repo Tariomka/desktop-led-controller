@@ -1,1 +1,0 @@
-This will be removed after everything here is moved to rpi pico project.

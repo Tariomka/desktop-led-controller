@@ -2,8 +2,16 @@ package main
 
 import "github.com/Tariomka/desktop-led-controller/internal/ui"
 
+func main() {
+	if window := ui.NewWindow(); window != nil {
+		window.Start()
+		defer window.Stop()
+	}
+}
+
 // import (
 // 	"fmt"
+// 	"time"
 
 // 	"github.com/Tariomka/desktop-led-controller/internal/tcp"
 // )
@@ -19,10 +27,3 @@ import "github.com/Tariomka/desktop-led-controller/internal/ui"
 
 // 	time.Sleep(5 * time.Second)
 // }
-
-func main() {
-	if window := ui.NewWindow(); window != nil {
-		window.Start()
-		defer window.Stop()
-	}
-}

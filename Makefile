@@ -45,12 +45,3 @@ tests:
 
 tests_verbose:
 	@go test -v ./test/...
-
-# remove later
-placeholder_run: placeholder_build
-	@./$(BIN_DIR)/placeholder.exe
-
-placeholder_build:
-	@echo Staring to build executable, please wait...
-	@go build -o ./$(BIN_DIR)/placeholder.exe ./rpi_placeholder/main.go
-	@echo Executable built successfully.
