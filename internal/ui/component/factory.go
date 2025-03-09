@@ -7,7 +7,7 @@ import (
 
 type PanelConfigFunc func(*Panel)
 
-type TypedPanelConfigFunc[Type Renderer] func(*Type)
+type TypedPanelConfigFunc[Type Renderer] func(*Type) // TODO: try integrating this, or remove it
 
 type NamedPanel struct {
 	Renderer
