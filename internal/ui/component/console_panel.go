@@ -85,7 +85,8 @@ func (cp *ConsolePanel) updateScrollIndex() {
 		return
 	}
 
-	cp.currentScrollIndex -= int(raylib.GetMouseWheelMove())
+	// TODO: add horizontal scrolling
+	cp.currentScrollIndex -= int(raylib.GetMouseWheelMoveV().Y)
 	if cp.currentScrollIndex < 0 {
 		cp.currentScrollIndex = 0
 	} else if cp.currentScrollIndex > (cp.messages.Length() - cp.visibleLineCount) {
@@ -124,6 +125,17 @@ func (cp *ConsolePanel) renderScrollbar() {
 		0,
 		int32(cp.messages.Length()-cp.visibleLineCount)))
 
+	// cp.currentScrollIndex = int(raygui.Slider(
+	// 	raylib.NewRectangle(
+	// 		cp.X,
+	// 		cp.Y+cp.Height-style.ListScrollWidth,
+	// 		cp.Width-style.ListScrollWidth,
+	// 		style.ListScrollWidth),
+	// 	"", "", // no text
+	// 	float32(cp.currentScrollIndex),
+	// 	0,
+	// 	float32(cp.messages.Length()-cp.visibleLineCount)))
+
 	style.SetScrollbarStyle(prevSliderSize, prevScrollSpeed)
 }
 
@@ -158,6 +170,23 @@ func (cp *ConsolePanel) renderMessages() {
 func (cp *ConsolePanel) testData() {
 	cp.test++
 	if cp.test%50 == 0 {
+		cp.messages.Add("")
 		cp.messages.Add(fmt.Sprintf("Message #%d: some ; aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", cp.test))
+
+		// for r := 'a'; r < 'z'; r++ {
+		// 	R := unicode.ToUpper(r)
+
+		// 	fmt.Printf("Char - %c; Width - %f\n", r, utils.GetTextWidth(string(r)))
+		// 	fmt.Printf("Char - %c; Width - %f\n", R, utils.GetTextWidth(string(R)))
+		// }
+
+		// fmt.Printf("Space; Width - %f\n", utils.GetTextWidth(string(' ')))
+		// fmt.Printf("Dot; Width - %f\n", utils.GetTextWidth(string('.')))
+		// fmt.Printf("Slash; Width - %f\n", utils.GetTextWidth(string('/')))
+
+		// move := raylib.GetMouseWheelMove()
+		// moveBoth := raylib.GetMouseWheelMoveV()
+		// fmt.Printf("Vertical scroll: move - %f; moveV - %f \n", move, moveBoth.Y)
+		// fmt.Printf("Horizontal scroll: moveV - %f \n", moveBoth.X)
 	}
 }

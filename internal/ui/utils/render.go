@@ -43,11 +43,12 @@ func RenderRectangle(rec raylib.Rectangle, borderWidth float32, borderColor, fil
 	}
 }
 
-// func renderString(text string, textBounds raylib.Rectangle, textColor color.RGBA) {
-// 	renderStringEx(text, textBounds)
-// }
-
-func renderStringEx(text string, textBounds raylib.Rectangle, textOffset *raylib.Vector2, totalHeight float32, textColor color.RGBA) {
+func renderStringEx(
+	text string,
+	textBounds raylib.Rectangle,
+	textOffset *raylib.Vector2,
+	totalHeight float32,
+	textColor color.RGBA) {
 	// NOTE: Make sure we get pixel-perfect coordinates, In case of decimals we got weird text positioning
 	textBoundsPosition := raylib.NewVector2(
 		float32(int(textBounds.X)),
@@ -58,63 +59,48 @@ func renderStringEx(text string, textBounds raylib.Rectangle, textOffset *raylib
 
 	charWidth := float32(0)
 	textWidth := GetTextWidth(text)
-	tempWrapCharMode := false
+	tempWrapMode := false
 	textOverflow := false
 	lastSpaceIndex := 0
 
 	for index, char := range text {
-		// Get glyph width to check if it goes out of bounds
-		charWidth = GetTextWidth(string(char))
-
-		// Wrap mode text measuring, to validate if
-		// it can be drawn or a new line is required
-		if style.WrapMode == raygui.TEXT_WRAP_CHAR {
-			// Jump to next line if current character reach end of the box limits
-			if textOffset.X+charWidth > textBounds.Width {
-				textOffset.X = float32(0)
-				textOffset.Y += style.TextLineSpacing
-
-				if tempWrapCharMode { // Wrap at char level when too long words
-					style.WrapMode = raygui.TEXT_WRAP_WORD
-					tempWrapCharMode = false
-				}
-			}
-		} else if style.WrapMode == raygui.TEXT_WRAP_WORD {
-			if char == ' ' {
-				lastSpaceIndex = index
-			}
-
-			// Get width to next space in line
-			nextSpaceWidth := GetNextSpaceWidth(text, index)
-			nextWordSize := GetNextSpaceWidth(text, lastSpaceIndex+1)
-
-			if nextWordSize > textBounds.Width {
-				// Considering the case the next word is longer than bounds
-				tempWrapCharMode = true
-				style.WrapMode = raygui.TEXT_WRAP_CHAR
-			} else if textOffset.X+nextSpaceWidth > textBounds.Width {
-				textOffset.X = float32(0)
-				textOffset.Y += style.TextLineSpacing
-			}
-		}
+		measureTextWrap(text, char, index, lastSpaceIndex, textBounds, textOffset, &tempWrapMode)
 
 		if char == '\n' {
 			break
 		}
 
+		// Get glyph width to check if it goes out of bounds
+		charWidth = GetTextWidth(string(char))
 		if char != ' ' && char != '\t' { // Do not draw chars with no glyph
 			textPos := raylib.NewVector2(
 				textBoundsPosition.X+textOffset.X,
 				textBoundsPosition.Y+textOffset.Y)
 
-			renderChar(char, charWidth, textWidth, textPos, textBounds, textColor, &textOverflow, *textOffset, textBoundsPosition)
+			renderChar(
+				char,
+				charWidth,
+				textWidth,
+				textPos,
+				textBounds,
+				textColor,
+				&textOverflow,
+				*textOffset,
+				textBoundsPosition)
 		}
 
 		textOffset.X += charWidth + style.TextSpacing
 	}
 }
 
-func renderChar(char rune, charWidth, textWidth float32, charPos raylib.Vector2, textBounds raylib.Rectangle, textColor color.RGBA, textOverflow *bool, textOffset, textBoundsPosition raylib.Vector2) {
+func renderChar(
+	char rune,
+	charWidth, textWidth float32,
+	charPos raylib.Vector2,
+	textBounds raylib.Rectangle,
+	textColor color.RGBA,
+	textOverflow *bool,
+	textOffset, textBoundsPosition raylib.Vector2) {
 	if style.WrapMode != raygui.TEXT_WRAP_NONE {
 		// Draw only glyphs inside the bounds
 		if textBoundsPosition.Y+textOffset.Y <= textBounds.Y+textBounds.Height-style.TextSize {
@@ -136,5 +122,49 @@ func renderChar(char rune, charWidth, textWidth float32, charPos raylib.Vector2,
 		*textOverflow = true
 
 		raylib.DrawTextEx(style.GuiFont, "...", charPos, style.TextSize, style.TextSpacing, textColor)
+	}
+}
+
+// Wrap mode text measuring, to validate if it can be drawn or a new line is required
+func measureTextWrap(
+	text string,
+	char rune,
+	charIndex, lastSpaceIndex int,
+	textBounds raylib.Rectangle,
+	textOffset *raylib.Vector2,
+	tempWrapMode *bool) {
+	switch style.WrapMode {
+	case raygui.TEXT_WRAP_CHAR:
+		charWidth := GetTextWidth(string(char))
+		// Jump to next line if current character reach end of the box limits
+		if textOffset.X+charWidth > textBounds.Width {
+			textOffset.X = float32(0)
+			textOffset.Y += style.TextLineSpacing
+
+			if *tempWrapMode { // Wrap at char level when too long words
+				style.WrapMode = raygui.TEXT_WRAP_WORD
+				*tempWrapMode = false
+			}
+		}
+
+	case raygui.TEXT_WRAP_WORD:
+		if char == ' ' {
+			lastSpaceIndex = charIndex
+		}
+
+		// Get width to next space in line
+		nextSpaceWidth := GetNextSpaceWidth(text, charIndex)
+		nextWordSize := GetNextSpaceWidth(text, lastSpaceIndex+1)
+
+		if nextWordSize > textBounds.Width {
+			// Considering the case the next word is longer than bounds
+			*tempWrapMode = true
+			style.WrapMode = raygui.TEXT_WRAP_CHAR
+		} else if textOffset.X+nextSpaceWidth > textBounds.Width {
+			textOffset.X = float32(0)
+			textOffset.Y += style.TextLineSpacing
+		}
+
+	default: // raygui.TEXT_WRAP_NONE
 	}
 }
