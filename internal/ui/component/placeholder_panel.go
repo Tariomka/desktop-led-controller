@@ -1,6 +1,6 @@
 package component
 
-type PlaceholderPanel struct{ PanelBase }
+type PlaceholderPanel struct{ Panel }
 
 func (pp *PlaceholderPanel) Update() { pp.resize() }
 

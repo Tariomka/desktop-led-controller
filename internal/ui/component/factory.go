@@ -5,7 +5,7 @@ import (
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
-type PanelConfigFunc func(*PanelBase)
+type PanelConfigFunc func(*Panel)
 
 type NamedPanel struct {
 	Renderer
@@ -20,7 +20,7 @@ func NewNamedPanel[T Renderer](title string, panelConfig ...PanelConfigFunc) Nam
 }
 
 func NewPanel[T Renderer](panelConfig ...PanelConfigFunc) Renderer {
-	base := defaultPanelBase()
+	base := defaultPanel()
 	for _, config := range panelConfig {
 		config(&base)
 	}
@@ -29,25 +29,25 @@ func NewPanel[T Renderer](panelConfig ...PanelConfigFunc) Renderer {
 	switch any(placeholder).(type) {
 	case *NavigationPanel:
 		return &NavigationPanel{
-			PanelBase:    base,
+			Panel:        base,
 			parent:       nil,
 			buttonStates: make([]bool, 0),
 		}
 	case *EditPanel:
-		return &EditPanel{PanelBase: base}
+		return &EditPanel{Panel: base}
 	case *MenuPanel:
 		return &MenuPanel{
-			PanelBase: base,
-			padding:   raylib.NewVector2(10, 10),
+			Panel:   base,
+			padding: raylib.NewVector2(10, 10),
 		}
 	case *ConsolePanel:
 		return &ConsolePanel{
-			PanelBase:   base,
+			Panel:       base,
 			messages:    common.NewRingArray[string](100),
 			itemFocused: -1,
 		}
 	case *PlaceholderPanel:
-		return &PlaceholderPanel{PanelBase: base}
+		return &PlaceholderPanel{Panel: base}
 	default:
 		panic("wrong renderer type")
 	}

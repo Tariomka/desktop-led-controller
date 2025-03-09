@@ -1,6 +1,6 @@
 package component
 
-type EditPanel struct{ PanelBase }
+type EditPanel struct{ Panel }
 
 func (ep *EditPanel) Update() { ep.resize() }
 

@@ -27,10 +27,10 @@ type PanelControler struct {
 //	rl.InitWindow(...)
 func NewPanelControler(panelConfig ...component.PanelConfigFunc) component.Renderer {
 	navBarHeight := style.TextLineSpacing
-	navBarConfig := append(panelConfig, func(pb *component.PanelBase) { pb.Height = navBarHeight })
+	navBarConfig := append(panelConfig, func(pb *component.Panel) { pb.Height = navBarHeight })
 	panelConfig = append(
 		panelConfig,
-		func(pb *component.PanelBase) {
+		func(pb *component.Panel) {
 			pb.Y += navBarHeight
 			pb.Height -= navBarHeight
 		})

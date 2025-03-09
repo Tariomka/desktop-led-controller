@@ -7,7 +7,7 @@ import (
 )
 
 type NavigationPanel struct {
-	PanelBase
+	Panel
 	parent       PanelSelector
 	buttonWidth  float32
 	buttonStates []bool

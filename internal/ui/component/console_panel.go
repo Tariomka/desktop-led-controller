@@ -11,7 +11,7 @@ import (
 )
 
 type ConsolePanel struct {
-	PanelBase
+	Panel
 	messageBounds raylib.Rectangle
 
 	messages         *common.RingArray[string]

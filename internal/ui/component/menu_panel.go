@@ -10,7 +10,7 @@ import (
 )
 
 type MenuPanel struct {
-	PanelBase
+	Panel
 	padding    raylib.Vector2
 	itemBounds raylib.Rectangle
 
