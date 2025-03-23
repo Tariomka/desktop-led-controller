@@ -12,7 +12,7 @@ type LedClient struct {
 
 func NewClient() *LedClient {
 	return &LedClient{
-		address: ":42069",
+		address: "192.168.0.169:42069",
 	}
 }
 
@@ -29,7 +29,7 @@ func (lc *LedClient) Start(data []byte) {
 	payload = append(payload, data...)
 
 	var n int
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		n, err = connection.Write(payload)
 		time.Sleep(1 * time.Second)
 	}

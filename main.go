@@ -18,9 +18,9 @@ func main() {
 
 // func main() {
 // 	go func() {
-// 		for i := 0; i < 10; i++ {
+// 		for i := range 10 {
 // 			client := tcp.NewClient()
-// 			go client.Start([]byte(fmt.Sprintf("test packet numero %d", 1+i)))
+// 			go client.Start(fmt.Appendf(nil, "test packet numero %d", 1+i))
 // 			time.Sleep(500 * time.Millisecond)
 // 		}
 // 	}()
