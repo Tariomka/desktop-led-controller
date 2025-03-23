@@ -3,22 +3,23 @@ package ui
 import (
 	"github.com/Tariomka/desktop-led-controller/internal/ui/component"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
+	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
 type WindowConfigFunc func(*WindowConfig)
 
 type WindowConfig struct {
-	windowWidth, windowHeight int32
-	cubeBaseSize, cubeHeight  uint8
+	WindowWidth, WindowHeight int32
+	CubeBaseSize, CubeHeight  uint8
 }
 
 func defaultConfig() WindowConfig {
 	return WindowConfig{
-		windowWidth:  1280,
-		windowHeight: 720,
-		cubeBaseSize: 8,
-		cubeHeight:   8,
+		WindowWidth:  1280,
+		WindowHeight: 720,
+		CubeBaseSize: 8,
+		CubeHeight:   8,
 	}
 }
 
@@ -36,14 +37,17 @@ func NewWindow(configFuncs ...WindowConfigFunc) *Window {
 	}
 
 	return &Window{
-		width:  config.windowWidth,
-		height: config.windowHeight,
+		width:  config.WindowWidth,
+		height: config.WindowHeight,
 
-		cubeGrid: component.NewCubeGrid(
-			config.cubeBaseSize,
-			config.cubeBaseSize,
-			config.cubeHeight,
-			raylib.NewVector3(1, 1, 1)),
+		cubeGrid: NewCubeGrid(
+			config.CubeBaseSize,
+			config.CubeBaseSize,
+			config.CubeHeight,
+			raylib.NewVector3(1, 1, 1),
+			raylib.NewVector2(
+				float32(config.WindowWidth*3/4), // TODO: remove hardcode? defaultPanel() has the final part
+				float32(config.WindowHeight))),
 	}
 }
 
@@ -51,8 +55,18 @@ func (w *Window) Start() {
 	raylib.SetConfigFlags(raylib.FlagWindowResizable)
 	raylib.InitWindow(w.width, w.height, "Led Cube Controller")
 	raylib.SetTargetFPS(60)
-	w.hud = component.NewPanelControler()
 
+	style.LoadStyle()
+	w.hud = NewPanelControler()
+
+	w.renderLoop()
+}
+
+func (w *Window) Stop() {
+	raylib.CloseWindow()
+}
+
+func (w *Window) renderLoop() {
 	for !global.WindowShouldClose {
 		global.WindowShouldClose = raylib.WindowShouldClose()
 
@@ -66,8 +80,4 @@ func (w *Window) Start() {
 
 		raylib.EndDrawing()
 	}
-}
-
-func (w *Window) Stop() {
-	raylib.CloseWindow()
 }

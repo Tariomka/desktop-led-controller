@@ -1,10 +1,11 @@
-package component
+package ui
 
 import (
 	"image/color"
 	"iter"
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
+	"github.com/Tariomka/desktop-led-controller/internal/ui/component"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -18,13 +19,13 @@ type CubeGrid struct {
 	cubes [][][]*Cube
 	size  raylib.Vector3
 
-	camera *raylib.Camera
-
+	camera    *raylib.Camera
+	screen    raylib.Rectangle
 	ray       raylib.Ray
 	collision raylib.RayCollision
 }
 
-func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) Renderer {
+func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3, window raylib.Vector2) component.Renderer {
 	sizeX := 1 + size.X
 	sizeY := 1 + size.Y
 	sizeZ := 1 + size.Z
@@ -66,9 +67,13 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) Renderer {
 			Position:   raylib.NewVector3(30.0, 30.0, 30.0),
 			Target:     raylib.NewVector3(10.0, 0.0, 0.0),
 			Up:         raylib.NewVector3(0.0, 1.0, 0.0),
-			Fovy:       55.0,
+			Fovy:       float32(yCount)*float32(zCount) - float32(xCount),
 			Projection: raylib.CameraPerspective,
 		},
+		screen: raylib.NewRectangle(
+			0, 0,
+			window.X,
+			window.Y),
 	}
 }
 
@@ -76,10 +81,11 @@ func (cg *CubeGrid) Update() {
 	if global.ShouldChangeColor && raylib.IsMouseButtonPressed(raylib.MouseLeftButton) {
 		cg.updateCollision()
 	}
-	if raylib.IsMouseButtonDown(raylib.MouseLeftButton) {
+
+	if raylib.IsMouseButtonDown(raylib.MouseLeftButton) &&
+		raylib.CheckCollisionPointRec(raylib.GetMousePosition(), cg.screen) {
 		raylib.UpdateCamera(cg.camera, raylib.CameraThirdPerson)
 	}
-
 }
 
 func (cg *CubeGrid) Render() {
