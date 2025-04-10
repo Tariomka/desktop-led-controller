@@ -51,32 +51,31 @@ func NewWindow(configFuncs ...WindowConfigFunc) *Window {
 	}
 }
 
-func (w *Window) Start() {
+func (this *Window) Start() {
 	raylib.SetConfigFlags(raylib.FlagWindowResizable)
-	raylib.InitWindow(w.width, w.height, "Led Cube Controller")
+	raylib.InitWindow(this.width, this.height, "Led Cube Controller")
 	raylib.SetTargetFPS(60)
 
 	style.LoadStyle()
-	w.hud = NewPanelControler()
-
-	w.renderLoop()
+	this.hud = NewPanelControler()
 }
 
-func (w *Window) Stop() {
+func (_ *Window) Stop() {
 	raylib.CloseWindow()
 }
 
-func (w *Window) renderLoop() {
+// Rendering method is a blocking infinite loop
+func (this *Window) Render() {
 	for !global.WindowShouldClose {
 		global.WindowShouldClose = raylib.WindowShouldClose()
 
-		w.cubeGrid.Update()
-		w.hud.Update()
+		this.cubeGrid.Update()
+		this.hud.Update()
 
 		raylib.BeginDrawing()
 
-		w.cubeGrid.Render()
-		w.hud.Render()
+		this.cubeGrid.Render()
+		this.hud.Render()
 
 		raylib.EndDrawing()
 	}

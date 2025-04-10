@@ -10,7 +10,7 @@ type LedClient struct {
 	address string
 }
 
-func NewClient() *LedClient {
+func NewClient(ip string, port uint16) *LedClient {
 	return &LedClient{
 		address: "192.168.0.169:42069",
 	}
