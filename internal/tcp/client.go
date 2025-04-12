@@ -1,19 +1,16 @@
 package tcp
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"time"
 )
 
-type LedClient struct {
-	address string
-}
+type LedClient struct{ address string }
 
 func NewClient(ip string, port uint16) *LedClient {
-	return &LedClient{
-		address: "192.168.0.169:42069",
-	}
+	return &LedClient{address: fmt.Sprintf("%s:%d", ip, port)}
 }
 
 func (lc *LedClient) Start(data []byte) {
