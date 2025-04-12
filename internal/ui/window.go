@@ -39,7 +39,6 @@ func NewWindow(configFuncs ...WindowConfigFunc) *Window {
 	return &Window{
 		width:  config.WindowWidth,
 		height: config.WindowHeight,
-
 		cubeGrid: NewCubeGrid(
 			config.CubeBaseSize,
 			config.CubeBaseSize,
@@ -69,9 +68,11 @@ func (this *Window) Render() {
 	for !global.WindowShouldClose {
 		global.WindowShouldClose = raylib.WindowShouldClose()
 
+		// Update
 		this.cubeGrid.Update()
 		this.hud.Update()
 
+		// Render
 		raylib.BeginDrawing()
 
 		this.cubeGrid.Render()

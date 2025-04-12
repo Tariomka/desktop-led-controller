@@ -38,10 +38,7 @@ func NewPanel[Type Renderer](panelConfig ...PanelConfigFunc) Renderer {
 	case *EditPanel:
 		return &EditPanel{Panel: base}
 	case *MenuPanel:
-		return &MenuPanel{
-			Panel:   base,
-			padding: raylib.NewVector2(10, 10),
-		}
+		return newMenuPanel(base)
 	case *ConsolePanel:
 		return &ConsolePanel{
 			Panel:       base,

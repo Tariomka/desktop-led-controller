@@ -3,14 +3,30 @@ package tcp
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"time"
+
+	"github.com/Tariomka/desktop-led-controller/internal/models"
+	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 )
 
-type LedClient struct{ address string }
+type LedClient struct {
+	address string
+
+	channel chan any
+}
 
 func NewClient(ip string, port uint16) *LedClient {
-	return &LedClient{address: fmt.Sprintf("%s:%d", ip, port)}
+	client := &LedClient{
+		address: fmt.Sprintf("%s:%d", ip, port),
+		channel: make(chan any, 3),
+	}
+
+	go client.channelLoop()
+	global.SetTcpClientChannel(client.channel)
+
+	return client
 }
 
 func (lc *LedClient) Start(data []byte) {
@@ -36,4 +52,34 @@ func (lc *LedClient) Start(data []byte) {
 	}
 
 	log.Printf("client sent %d bytes, content: %s\n", n, payload)
+}
+
+func (this *LedClient) Connect() {
+	time.Sleep(100 * time.Millisecond)
+	if rand.Intn(3) == 0 {
+		global.SendToUi(models.ConnectedMessage{})
+	} else {
+		global.SendToUi(models.DisconnectedMessage{})
+	}
+}
+
+func (this *LedClient) Disconnect() {
+	time.Sleep(100 * time.Millisecond)
+	global.SendToUi(models.DisconnectedMessage{})
+}
+
+func (this *LedClient) channelLoop() {
+	for {
+		select {
+		case message := <-this.channel:
+			switch message.(type) {
+			case models.ConnectRequestMessage:
+				println("received connect")
+				this.Connect()
+			case models.DisconnectRequestMessage:
+				println("received disconnect")
+				this.Disconnect()
+			}
+		}
+	}
 }
