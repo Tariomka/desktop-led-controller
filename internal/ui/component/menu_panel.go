@@ -24,7 +24,7 @@ func newMenuPanel(base Panel) *MenuPanel {
 	menuPanel := &MenuPanel{
 		Panel:   base,
 		padding: raylib.NewVector2(10, 10),
-		channel: make(chan any, 3),
+		channel: make(chan any, 1),
 	}
 
 	go menuPanel.channelLoop()

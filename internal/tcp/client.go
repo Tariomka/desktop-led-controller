@@ -20,7 +20,7 @@ type LedClient struct {
 func NewClient(ip string, port uint16) *LedClient {
 	client := &LedClient{
 		address: fmt.Sprintf("%s:%d", ip, port),
-		channel: make(chan any, 3),
+		channel: make(chan any, 1),
 	}
 
 	go client.channelLoop()
@@ -55,6 +55,7 @@ func (lc *LedClient) Start(data []byte) {
 }
 
 func (this *LedClient) Connect() {
+
 	time.Sleep(100 * time.Millisecond)
 	if rand.Intn(3) == 0 {
 		global.SendToUi(models.ConnectedMessage{})
@@ -68,6 +69,7 @@ func (this *LedClient) Disconnect() {
 	global.SendToUi(models.DisconnectedMessage{})
 }
 
+// Blocking state loop
 func (this *LedClient) channelLoop() {
 	for {
 		select {

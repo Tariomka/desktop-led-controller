@@ -1,9 +1,6 @@
 package component
 
-import (
-	"github.com/Tariomka/desktop-led-controller/internal/common"
-	raylib "github.com/gen2brain/raylib-go/raylib"
-)
+import raylib "github.com/gen2brain/raylib-go/raylib"
 
 type PanelConfigFunc func(*Panel)
 
@@ -40,11 +37,7 @@ func NewPanel[Type Renderer](panelConfig ...PanelConfigFunc) Renderer {
 	case *MenuPanel:
 		return newMenuPanel(base)
 	case *ConsolePanel:
-		return &ConsolePanel{
-			Panel:       base,
-			messages:    common.NewRingArray[string](100),
-			itemFocused: -1,
-		}
+		return newConsolePanel(base)
 	case *PlaceholderPanel:
 		return &PlaceholderPanel{Panel: base}
 	default:

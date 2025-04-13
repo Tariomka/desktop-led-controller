@@ -30,11 +30,6 @@ func NewRunner(config RunnerConfig) IRunner {
 
 func (this *LedClientRunner) Start() {
 	this.Window.Start()
-
-	// TODO: create a channel to communicate between menu panel and TCP client
-	// TODO: start a Goroutine for the client?
-	// Channels?:
-
 	this.Window.Render()
 }
 

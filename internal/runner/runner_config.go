@@ -7,8 +7,8 @@ import (
 )
 
 type RunnerConfig struct {
-	IP   string
-	Port uint16
+	IP   string `json:"IP,omitempty"`
+	Port uint16 `json:"Port"`
 }
 
 func NewConfig() RunnerConfig {

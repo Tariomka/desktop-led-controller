@@ -26,6 +26,14 @@ type ConsolePanel struct {
 	scrollbarSliderSize float32
 }
 
+func newConsolePanel(base Panel) *ConsolePanel {
+	return &ConsolePanel{
+		Panel:       base,
+		messages:    common.NewRingArray[string](100),
+		itemFocused: -1,
+	}
+}
+
 func (cp *ConsolePanel) Update() {
 	cp.testData() // FIXME: to be deleted
 	cp.resize()
