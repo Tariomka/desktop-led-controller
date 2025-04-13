@@ -3,7 +3,6 @@ package tcp
 import (
 	"fmt"
 	"log"
-	"math/rand"
 	"net"
 	"time"
 
@@ -15,6 +14,10 @@ type LedClient struct {
 	address string
 
 	channel chan any
+
+	connected   bool
+	connection  net.Conn
+	sendChannel chan []byte
 }
 
 func NewClient(ip string, port uint16) *LedClient {
@@ -55,17 +58,32 @@ func (lc *LedClient) Start(data []byte) {
 }
 
 func (this *LedClient) Connect() {
-
-	time.Sleep(100 * time.Millisecond)
-	if rand.Intn(3) == 0 {
-		global.SendToUi(models.ConnectedMessage{})
-	} else {
+	connection, err := net.Dial("tcp", this.address)
+	if err != nil {
+		println(err.Error())
 		global.SendToUi(models.DisconnectedMessage{})
+		return
 	}
+
+	this.connection = connection
+	this.connected = true
+	// defer this.Disconnect()
+
+	go this.receive()
+	go this.send()
+
+	global.SendToUi(models.ConnectedMessage{})
+	// for this.connected {
+	// Just to block
+	// }
 }
 
 func (this *LedClient) Disconnect() {
-	time.Sleep(100 * time.Millisecond)
+	this.connected = false
+	if this.connection != nil {
+		this.connection.Close()
+		this.connection = nil
+	}
 	global.SendToUi(models.DisconnectedMessage{})
 }
 
@@ -75,13 +93,28 @@ func (this *LedClient) channelLoop() {
 		select {
 		case message := <-this.channel:
 			switch message.(type) {
-			case models.ConnectRequestMessage:
+			case models.TCPConnectMessage:
 				println("received connect")
 				this.Connect()
-			case models.DisconnectRequestMessage:
+			case models.TCPDisconnectMessage:
 				println("received disconnect")
 				this.Disconnect()
+			case models.TCPSendPacketMessage:
+				this.sendChannel <- message.(models.TCPSendPacketMessage).Data
 			}
 		}
+	}
+}
+
+func (this *LedClient) receive() {
+	for this.connected {
+
+	}
+}
+
+func (this *LedClient) send() {
+	for this.connected {
+		data := <-this.sendChannel
+		this.connection.Write(data)
 	}
 }

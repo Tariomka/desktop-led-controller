@@ -1,9 +1,11 @@
 package runner
 
 import (
+	"github.com/Tariomka/desktop-led-controller/internal/models"
 	"github.com/Tariomka/desktop-led-controller/internal/processor"
 	"github.com/Tariomka/desktop-led-controller/internal/tcp"
 	"github.com/Tariomka/desktop-led-controller/internal/ui"
+	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 )
 
 type IRunner interface {
@@ -34,5 +36,6 @@ func (this *LedClientRunner) Start() {
 }
 
 func (this *LedClientRunner) Stop() {
-	defer this.Window.Stop()
+	global.SendToClient(models.TCPDisconnectMessage{})
+	this.Window.Stop()
 }
