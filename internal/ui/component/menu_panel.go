@@ -107,7 +107,7 @@ func (this *MenuPanel) renderConnect() {
 	case 0:
 		if raygui.Button(buttonBounds, raygui.IconText(raygui.ICON_LOCK_CLOSE, "Connect")) {
 			this.connectionStatus = 1
-			global.SendToClient(models.ConnectRequestMessage{})
+			global.SendToClient(models.TCPConnectMessage{})
 		}
 	case 1:
 		raygui.Disable()
@@ -116,7 +116,7 @@ func (this *MenuPanel) renderConnect() {
 	case 2:
 		if raygui.Button(buttonBounds, raygui.IconText(raygui.ICON_LOCK_OPEN, "Disconnect")) {
 			this.connectionStatus = 3
-			global.SendToClient(models.DisconnectRequestMessage{})
+			global.SendToClient(models.TCPDisconnectMessage{})
 		}
 	case 3:
 		raygui.Disable()
@@ -140,7 +140,7 @@ func (this *MenuPanel) channelLoop() {
 					continue
 				}
 				this.connectionStatus = 1
-				global.SendToClient(models.ConnectRequestMessage{})
+				global.SendToClient(models.TCPConnectMessage{})
 			}
 		}
 	}

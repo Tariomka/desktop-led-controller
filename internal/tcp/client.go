@@ -22,8 +22,9 @@ type LedClient struct {
 
 func NewClient(ip string, port uint16) *LedClient {
 	client := &LedClient{
-		address: fmt.Sprintf("%s:%d", ip, port),
-		channel: make(chan any, 1),
+		address:     fmt.Sprintf("%s:%d", ip, port),
+		channel:     make(chan any, 1),
+		sendChannel: make(chan []byte),
 	}
 
 	go client.channelLoop()
@@ -67,15 +68,11 @@ func (this *LedClient) Connect() {
 
 	this.connection = connection
 	this.connected = true
-	// defer this.Disconnect()
 
 	go this.receive()
 	go this.send()
 
 	global.SendToUi(models.ConnectedMessage{})
-	// for this.connected {
-	// Just to block
-	// }
 }
 
 func (this *LedClient) Disconnect() {
@@ -85,6 +82,7 @@ func (this *LedClient) Disconnect() {
 		this.connection = nil
 	}
 	global.SendToUi(models.DisconnectedMessage{})
+	println("Disconnected")
 }
 
 // Blocking state loop
@@ -108,7 +106,18 @@ func (this *LedClient) channelLoop() {
 
 func (this *LedClient) receive() {
 	for this.connected {
+		buffer := make([]byte, 1024)
+		n, err := this.connection.Read(buffer)
+		// TODO: Handle errors and data
+		if err != nil {
+			println(err.Error())
+			continue
+		}
 
+		print("Data length: ")
+		println(n)
+		print("Data: ")
+		println(buffer)
 	}
 }
 
