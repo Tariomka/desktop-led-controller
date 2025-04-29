@@ -7,7 +7,7 @@ import (
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
-// Returns padded Rectangle bounds
+// GetTextBounds returns padded Rectangle bounds
 func GetTextBounds(bounds raylib.Rectangle) raylib.Rectangle {
 	return raylib.NewRectangle(
 		bounds.X+style.BorderWidth+style.TextPadding,
@@ -16,7 +16,7 @@ func GetTextBounds(bounds raylib.Rectangle) raylib.Rectangle {
 		bounds.Height-2*style.BorderWidth-2*style.TextPadding)
 }
 
-// Returns text lines (using '\n' as delimiter) to be processed individually
+// GetTextLines returns text lines (using '\n' as delimiter) to be processed individually
 func GetTextLines(text string, count *int64) []string {
 	lines := strings.Split(text, "\n")
 	*count += int64(len(lines))

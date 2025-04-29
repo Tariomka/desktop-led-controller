@@ -6,7 +6,7 @@ import (
 	"github.com/Tariomka/desktop-led-controller/internal/common"
 )
 
-// State representation of all led colors of the cube.
+// LedLayout is a state representation of all led colors of the cube.
 //
 // There are 8 layers, each having 64 leds, each having 3 contacts (GBR),
 // making a single layer hold 192 bits of information.

@@ -45,3 +45,6 @@ tests:
 
 tests_verbose:
 	@go test -v ./test/...
+
+analyse:
+	staticcheck ./...

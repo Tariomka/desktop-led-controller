@@ -63,7 +63,7 @@ func (_ *Window) Stop() {
 	raylib.CloseWindow()
 }
 
-// Rendering method is a blocking infinite loop
+// Render is a blocking infinite loop
 func (this *Window) Render() {
 	for !global.WindowShouldClose {
 		global.WindowShouldClose = raylib.WindowShouldClose()

@@ -28,13 +28,13 @@ func NewClient(ip string, port uint16) *LedClient {
 	}
 
 	go client.channelLoop()
-	global.SetTcpClientChannel(client.channel)
+	global.SetTCPClientChannel(client.channel)
 
 	return client
 }
 
-func (lc *LedClient) Start(data []byte) {
-	connection, err := net.Dial("tcp", lc.address)
+func (this *LedClient) Start(data []byte) {
+	connection, err := net.Dial("tcp", this.address)
 	// add retry policy
 	if err != nil {
 		log.Fatal(err) // change to printf
@@ -62,7 +62,7 @@ func (this *LedClient) Connect() {
 	connection, err := net.Dial("tcp", this.address)
 	if err != nil {
 		println(err.Error())
-		global.SendToUi(models.DisconnectedMessage{})
+		global.SendToUI(models.DisconnectedMessage{})
 		return
 	}
 
@@ -72,7 +72,7 @@ func (this *LedClient) Connect() {
 	go this.receive()
 	go this.send()
 
-	global.SendToUi(models.ConnectedMessage{})
+	global.SendToUI(models.ConnectedMessage{})
 }
 
 func (this *LedClient) Disconnect() {
@@ -81,25 +81,22 @@ func (this *LedClient) Disconnect() {
 		this.connection.Close()
 		this.connection = nil
 	}
-	global.SendToUi(models.DisconnectedMessage{})
+	global.SendToUI(models.DisconnectedMessage{})
 	println("Disconnected")
 }
 
 // Blocking state loop
 func (this *LedClient) channelLoop() {
 	for {
-		select {
-		case message := <-this.channel:
-			switch message.(type) {
-			case models.TCPConnectMessage:
-				println("received connect")
-				this.Connect()
-			case models.TCPDisconnectMessage:
-				println("received disconnect")
-				this.Disconnect()
-			case models.TCPSendPacketMessage:
-				this.sendChannel <- message.(models.TCPSendPacketMessage).Data
-			}
+		switch message := (<-this.channel).(type) {
+		case models.TCPConnectMessage:
+			println("received connect")
+			this.Connect()
+		case models.TCPDisconnectMessage:
+			println("received disconnect")
+			this.Disconnect()
+		case models.TCPSendPacketMessage:
+			this.sendChannel <- message.Data
 		}
 	}
 }

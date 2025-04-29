@@ -7,20 +7,20 @@ var (
 	uiChannel        chan<- any
 )
 
-func SetTcpClientChannel(channel chan<- any) { tcpClientChannel = channel }
+func SetTCPClientChannel(channel chan<- any) { tcpClientChannel = channel }
 
 func SendToClient(message any) {
 	if tcpClientChannel == nil {
-		SendToUi(models.DisconnectedMessage{})
+		SendToUI(models.DisconnectedMessage{})
 		return
 	}
 
 	tcpClientChannel <- message
 }
 
-func SetUiChannel(channel chan<- any) { uiChannel = channel }
+func SetUIChannel(channel chan<- any) { uiChannel = channel }
 
-func SendToUi(message any) {
+func SendToUI(message any) {
 	if uiChannel == nil {
 		return
 	}

@@ -28,7 +28,7 @@ func newMenuPanel(base Panel) *MenuPanel {
 	}
 
 	go menuPanel.channelLoop()
-	global.SetUiChannel(menuPanel.channel)
+	global.SetUIChannel(menuPanel.channel)
 
 	return menuPanel
 }
@@ -129,19 +129,16 @@ func (this *MenuPanel) renderConnect() {
 // Blocking state loop
 func (this *MenuPanel) channelLoop() {
 	for {
-		select {
-		case message := <-this.channel:
-			switch message.(type) {
-			case models.ConnectedMessage:
-				this.connectionStatus = 2
-			case models.DisconnectedMessage:
-				if !this.retryToggle {
-					this.connectionStatus = 0
-					continue
-				}
-				this.connectionStatus = 1
-				global.SendToClient(models.TCPConnectMessage{})
+		switch (<-this.channel).(type) {
+		case models.ConnectedMessage:
+			this.connectionStatus = 2
+		case models.DisconnectedMessage:
+			if !this.retryToggle {
+				this.connectionStatus = 0
+				continue
 			}
+			this.connectionStatus = 1
+			global.SendToClient(models.TCPConnectMessage{})
 		}
 	}
 }
