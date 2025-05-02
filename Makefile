@@ -1,6 +1,6 @@
 BIN_DIR = bin
 RAYLIB = raylib.dll
-CONFIG = confings/config.json
+CONFIG = configs/config.json
 BUILD_FLAGS = -ldflags "-H=windowsgui"
 ifdef OS
 	RM = del /s /q
@@ -34,7 +34,7 @@ build_no_flags: create
 
 copy_dependencies: create
 	@if [ ! -a ./$(BIN_DIR)/$(RAYLIB) ]; then $(CP) $(RAYLIB) $(BIN_DIR); fi
-	$(CP) $(CONFIG) $(BIN_DIR)
+	@if [ -a ./$(CONFIG) ]; then $(CP) $(CONFIG) $(BIN_DIR); fi
 
 create:
 	@if [ ! -d $(BIN_DIR) ]; then mkdir $(BIN_DIR); fi

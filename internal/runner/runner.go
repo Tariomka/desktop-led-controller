@@ -6,10 +6,10 @@ import (
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
 	"github.com/Tariomka/desktop-led-controller/internal/models"
-	"github.com/Tariomka/desktop-led-controller/internal/processor"
 	"github.com/Tariomka/desktop-led-controller/internal/tcp"
 	"github.com/Tariomka/desktop-led-controller/internal/ui"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
+	"github.com/Tariomka/led-common-lib/pkg/led"
 )
 
 type IRunner interface {
@@ -20,7 +20,7 @@ type IRunner interface {
 type LedClientRunner struct {
 	Window       *ui.Window
 	Client       *tcp.LedClient
-	LayoutWorker processor.LayoutWorker
+	LayoutWorker led.LayoutWorker
 
 	config RunnerConfig
 }
@@ -33,7 +33,7 @@ func NewRunner(config RunnerConfig) IRunner {
 			IP:     config.IP,
 			Port:   config.Port,
 		}),
-		LayoutWorker: &processor.LedLayout{},
+		LayoutWorker: &led.LedLayout{},
 		config:       config,
 	}
 }

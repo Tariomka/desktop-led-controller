@@ -12,6 +12,7 @@ import (
 	"github.com/Tariomka/desktop-led-controller/internal/common"
 	"github.com/Tariomka/desktop-led-controller/internal/models"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
+	"github.com/Tariomka/led-common-lib/pkg/network"
 )
 
 type ClientConfig struct {
@@ -161,7 +162,7 @@ func (this *LedClient) receive() {
 func (this *LedClient) send() {
 	for this.connected {
 		// data := <-this.sendChannel
-		packet := NewMessagePacket(<-this.sendChannel)
+		packet := network.NewMessagePacket(<-this.sendChannel)
 		this.connection.Write(packet.Marshall())
 	}
 }

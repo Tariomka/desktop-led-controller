@@ -1,6 +1,6 @@
 # Requirements
 
-1. Go v1.23.4 or above: [download link](https://go.dev/doc/install).
+1. Go v1.24.2 or above: [download link](https://go.dev/doc/install).
 3. Code editor, ex. VS Code.
 4. GNU Make.
 5. Git.
