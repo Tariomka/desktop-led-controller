@@ -1,5 +1,6 @@
 BIN_DIR = bin
 RAYLIB = raylib.dll
+CONFIG = confings/config.json
 BUILD_FLAGS = -ldflags "-H=windowsgui"
 ifdef OS
 	RM = del /s /q
@@ -11,10 +12,10 @@ else
 	EXE_NAME = desktop_app
 endif
 
-run_no_flags: build_no_flags copy_raylib
+run_no_flags: build_no_flags copy_dependencies
 	@./$(BIN_DIR)/$(EXE_NAME)
 
-run: build copy_raylib
+run: build copy_dependencies
 	@./$(BIN_DIR)/$(EXE_NAME)
 
 run_no_build:
@@ -31,8 +32,9 @@ build_no_flags: create
 	@go build -o ./$(BIN_DIR)/$(EXE_NAME) main.go
 	@echo Executable built successfully.
 
-copy_raylib: create
+copy_dependencies: create
 	@if [ ! -a ./$(BIN_DIR)/$(RAYLIB) ]; then $(CP) $(RAYLIB) $(BIN_DIR); fi
+	$(CP) $(CONFIG) $(BIN_DIR)
 
 create:
 	@if [ ! -d $(BIN_DIR) ]; then mkdir $(BIN_DIR); fi

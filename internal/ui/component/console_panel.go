@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
+	"github.com/Tariomka/desktop-led-controller/internal/models"
+	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/utils"
 	"github.com/gen2brain/raylib-go/raygui"
@@ -14,7 +16,7 @@ type ConsolePanel struct {
 	Panel
 	messageBounds raylib.Rectangle
 
-	messages         *common.RingArray[string]
+	messages         *common.RingBuffer[string]
 	visibleLineCount int
 
 	test int
@@ -29,7 +31,7 @@ type ConsolePanel struct {
 func newConsolePanel(base Panel) *ConsolePanel {
 	return &ConsolePanel{
 		Panel:       base,
-		messages:    common.NewRingArray[string](100),
+		messages:    common.NewRingBuffer[string](100),
 		itemFocused: -1,
 	}
 }
@@ -180,7 +182,7 @@ func (cp *ConsolePanel) testData() {
 	if cp.test%50 == 0 {
 		cp.messages.Add("")
 		cp.messages.Add(fmt.Sprintf("Message #%d: some ; aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", cp.test))
-
+		global.SendToClient(models.TCPSendPacketMessage{Data: fmt.Sprintf("%d", cp.test)})
 		// for r := 'a'; r < 'z'; r++ {
 		// 	R := unicode.ToUpper(r)
 

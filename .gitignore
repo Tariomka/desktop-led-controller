@@ -28,4 +28,3 @@ go.work.sum
 
 # env file
 .env
-internal/runner/config.json

@@ -1,6 +1,10 @@
 package runner
 
 import (
+	"log/slog"
+	"os"
+
+	"github.com/Tariomka/desktop-led-controller/internal/common"
 	"github.com/Tariomka/desktop-led-controller/internal/models"
 	"github.com/Tariomka/desktop-led-controller/internal/processor"
 	"github.com/Tariomka/desktop-led-controller/internal/tcp"
@@ -23,8 +27,12 @@ type LedClientRunner struct {
 
 func NewRunner(config RunnerConfig) IRunner {
 	return &LedClientRunner{
-		Window:       ui.NewWindow(),
-		Client:       tcp.NewClient(config.IP, config.Port),
+		Window: ui.NewWindow(),
+		Client: tcp.NewClient(tcp.ClientConfig{
+			Logger: common.NewStructuredLogger(os.Stdout, slog.LevelDebug),
+			IP:     config.IP,
+			Port:   config.Port,
+		}),
 		LayoutWorker: &processor.LedLayout{},
 		config:       config,
 	}
