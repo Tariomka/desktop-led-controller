@@ -81,7 +81,7 @@ func (this *LedClient) Connect() {
 	connection, err := net.Dial("tcp", this.address)
 	if err != nil {
 		this.logger.Error("tcp client dial failure", "error", err)
-		global.SendToUI(models.DisconnectedMessage{})
+		global.SendToUIConnection(models.DisconnectedMessage{})
 		return
 	}
 
@@ -96,7 +96,7 @@ func (this *LedClient) Connect() {
 	go this.receive()
 	go this.send()
 
-	global.SendToUI(models.ConnectedMessage{})
+	global.SendToUIConnection(models.ConnectedMessage{})
 }
 
 func (this *LedClient) Disconnect() {
@@ -109,7 +109,7 @@ func (this *LedClient) Disconnect() {
 		this.connection.Close()
 		this.connection = nil
 	}
-	global.SendToUI(models.DisconnectedMessage{})
+	global.SendToUIConnection(models.DisconnectedMessage{})
 	this.logger.Debug("action taken - Disconnect(ed)")
 }
 

@@ -13,15 +13,15 @@ func NewRingBuffer[Type any](capacity int) *RingBuffer[Type] {
 	}
 }
 
-func (ra *RingBuffer[Type]) Add(element Type) {
-	ra.data = append([]Type{element}, ra.data...)
-	if ra.length >= ra.capacity {
-		ra.data = ra.data[:ra.capacity]
+func (this *RingBuffer[Type]) Add(element Type) {
+	this.data = append([]Type{element}, this.data...)
+	if this.length >= this.capacity {
+		this.data = this.data[:this.capacity]
 		return
 	}
-	ra.length++
+	this.length++
 }
 
-func (ra *RingBuffer[Type]) Get(index int) Type { return ra.data[index] }
+func (this *RingBuffer[Type]) Get(index int) Type { return this.data[index] }
 
-func (ra *RingBuffer[Type]) Length() int { return ra.length }
+func (this *RingBuffer[Type]) Length() int { return this.length }

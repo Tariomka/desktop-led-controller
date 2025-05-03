@@ -33,7 +33,7 @@ func NewPanel[Type Renderer](panelConfig ...PanelConfigFunc) Renderer {
 			buttonStates: make([]bool, 0),
 		}
 	case *EditPanel:
-		return &EditPanel{Panel: base}
+		return newEditPanel(base)
 	case *MenuPanel:
 		return newMenuPanel(base)
 	case *ConsolePanel:

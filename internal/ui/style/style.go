@@ -47,6 +47,7 @@ var (
 // General colors
 var (
 	BackgroundColor = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.BACKGROUND_COLOR)))
+	BorderColor     = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.BORDER_COLOR_NORMAL)))
 	TextColorNormal = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_COLOR_NORMAL)))
 )
 
@@ -87,6 +88,7 @@ func UpdateStyle() {
 
 	// General colors
 	BackgroundColor = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.BACKGROUND_COLOR)))
+	BorderColor = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.BORDER_COLOR_NORMAL)))
 	TextColorNormal = raylib.GetColor(uint(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_COLOR_NORMAL)))
 
 	// List item colors

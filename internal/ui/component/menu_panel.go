@@ -28,7 +28,7 @@ func newMenuPanel(base Panel) *MenuPanel {
 	}
 
 	go menuPanel.channelLoop()
-	global.SetUIChannel(menuPanel.channel)
+	global.SetUIConnectionChannel(menuPanel.channel)
 
 	return menuPanel
 }
@@ -50,6 +50,7 @@ func (this *MenuPanel) Render() {
 	this.itemBounds.Y += this.itemBounds.Height / 2
 	this.renderConnect()
 	// TODO: maybe a text area with the last message? or maybe just pass a message to ConsolePanel
+	// TODO: add ip/port input area, maybe also save option to overwrite config.json
 }
 
 func (this *MenuPanel) renderStatus() {

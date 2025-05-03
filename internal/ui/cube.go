@@ -50,16 +50,6 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3, window rayli
 		}
 	}
 
-	// for debugging purposes
-	// Delete this block when done
-	grid[7][0][1].color = common.ColorRed
-	grid[7][0][3].color = common.ColorGreen
-	grid[7][0][6].color = common.ColorBlue
-	grid[7][4][2].color = common.ColorCyan
-	grid[7][4][4].color = common.ColorYellow
-	grid[7][4][6].color = common.ColorViolet
-	grid[7][7][5].color = common.ColorWhite
-
 	return &CubeGrid{
 		cubes: grid,
 		size:  size,
