@@ -54,8 +54,8 @@ func NewElement[Type Renderer]() Renderer {
 			width:  250,
 			height: 100,
 		}
-	case *MessageListView:
-		return &MessageListView{}
+	// case *MessageListView:
+	// 	return &MessageListView{}
 	default:
 		panic("wrong renderer type")
 	}

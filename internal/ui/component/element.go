@@ -52,8 +52,8 @@ func (this *ExitDialog) Render() {
 	}
 }
 
-type MessageListView struct{}
+// type MessageListView struct{}
 
-func (mlv *MessageListView) Update() {}
+// func (mlv *MessageListView) Update() {}
 
-func (mlv *MessageListView) Render() {}
+// func (mlv *MessageListView) Render() {}
