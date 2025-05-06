@@ -1,7 +1,10 @@
 package component
 
 import (
+	"fmt"
+
 	"github.com/Tariomka/desktop-led-controller/internal/common"
+	"github.com/Tariomka/desktop-led-controller/internal/common/constants"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/utils"
@@ -34,7 +37,17 @@ func newConsolePanel(base Panel) *ConsolePanel {
 	}
 
 	go consolePanel.channelLoop()
-	global.SetUIMessageChannel(consolePanel.channel)
+	global.Messenger.RegisterReceiver(
+		constants.UIConsolePanel,
+		func(message any) {
+			stringMessage, ok := message.(string)
+			if !ok {
+				fmt.Printf("[CONSOLE_PANEL] Not a string message received, message %#v\n", message)
+				return
+			}
+
+			consolePanel.channel <- stringMessage
+		})
 
 	return consolePanel
 }

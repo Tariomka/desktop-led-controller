@@ -8,7 +8,8 @@ import (
 
 // Globally accesable state
 var (
+	Messenger         *common.Messenger
 	ShouldChangeColor bool
-	SelectedColor     color.RGBA = common.ColorGray
+	SelectedColor     color.RGBA = common.ColorOff
 	WindowShouldClose bool
 )

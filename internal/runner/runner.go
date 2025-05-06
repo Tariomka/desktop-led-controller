@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
+	"github.com/Tariomka/desktop-led-controller/internal/common/constants"
 	"github.com/Tariomka/desktop-led-controller/internal/models"
 	"github.com/Tariomka/desktop-led-controller/internal/tcp"
 	"github.com/Tariomka/desktop-led-controller/internal/ui"
@@ -26,6 +27,8 @@ type LedClientRunner struct {
 }
 
 func NewRunner(config RunnerConfig) IRunner {
+	global.Messenger = common.NewMessanger()
+
 	return &LedClientRunner{
 		Window: ui.NewWindow(),
 		Client: tcp.NewClient(tcp.ClientConfig{
@@ -44,6 +47,6 @@ func (this *LedClientRunner) Start() {
 }
 
 func (this *LedClientRunner) Stop() {
-	global.SendToClient(models.TCPDisconnectMessage{})
+	global.Messenger.Send(constants.TCPClient, models.TCPDisconnectMessage{})
 	this.Window.Stop()
 }

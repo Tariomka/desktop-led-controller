@@ -50,7 +50,7 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3, window rayli
 		}
 	}
 
-	return &CubeGrid{
+	cubeGrid := &CubeGrid{
 		cubes: grid,
 		size:  size,
 		camera: &raylib.Camera{
@@ -65,6 +65,7 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3, window rayli
 			window.X,
 			window.Y),
 	}
+	return cubeGrid
 }
 
 func (cg *CubeGrid) Update() {

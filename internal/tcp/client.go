@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
+	"github.com/Tariomka/desktop-led-controller/internal/common/constants"
 	"github.com/Tariomka/desktop-led-controller/internal/models"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 	"github.com/Tariomka/led-common-lib/pkg/network"
@@ -47,7 +48,9 @@ func NewClient(config ClientConfig) *LedClient {
 	}
 
 	go client.channelLoop()
-	global.SetTCPClientChannel(client.channel)
+	global.Messenger.RegisterReceiver(
+		constants.TCPClient,
+		func(message any) { client.channel <- message })
 
 	return client
 }
@@ -81,7 +84,7 @@ func (this *LedClient) Connect() {
 	connection, err := net.Dial("tcp", this.address)
 	if err != nil {
 		this.logger.Error("tcp client dial failure", "error", err)
-		global.SendToUIConnection(models.DisconnectedMessage{})
+		global.Messenger.Send(constants.UIMenuPanel, models.DisconnectedMessage{})
 		return
 	}
 
@@ -96,7 +99,7 @@ func (this *LedClient) Connect() {
 	go this.receive()
 	go this.send()
 
-	global.SendToUIConnection(models.ConnectedMessage{})
+	global.Messenger.Send(constants.UIMenuPanel, models.ConnectedMessage{})
 }
 
 func (this *LedClient) Disconnect() {
@@ -109,7 +112,7 @@ func (this *LedClient) Disconnect() {
 		this.connection.Close()
 		this.connection = nil
 	}
-	global.SendToUIConnection(models.DisconnectedMessage{})
+	global.Messenger.Send(constants.UIMenuPanel, models.DisconnectedMessage{})
 	this.logger.Debug("action taken - Disconnect(ed)")
 }
 
@@ -161,7 +164,6 @@ func (this *LedClient) receive() {
 
 func (this *LedClient) send() {
 	for this.connected {
-		// data := <-this.sendChannel
 		packet := network.NewMessagePacket(<-this.sendChannel)
 		this.connection.Write(packet.Marshall())
 	}
