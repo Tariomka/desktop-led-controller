@@ -10,23 +10,11 @@ import (
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
-type layerSelection int32
-
-const (
-	all layerSelection = iota
-	layer
-	column
-	precise
-)
-
 type EditPanel struct {
 	Panel
 	padding    raylib.Vector2
 	itemBounds raylib.Rectangle
 
-	selectedLayer layerSelection
-	row           uint8
-	column        uint8
 	colorSelector bool
 	activeColor   int32
 	colorChanged  bool
@@ -98,32 +86,32 @@ func (this *EditPanel) renderSegmentLine() {
 
 func (this *EditPanel) renderLayerSelection() {
 	// TODO: send layer selection values (row + column) to cube renderer. maybe make it global state?
-	this.selectedLayer = layerSelection(raygui.ComboBox(
+	global.SelectedLayerState = global.LayerState(raygui.ComboBox(
 		this.itemBounds,
 		"All;Layer;Column;Precise",
-		int32(this.selectedLayer)))
+		int32(global.SelectedLayerState)))
 	this.itemBounds.Y += this.itemBounds.Height + this.padding.Y
 
-	if this.selectedLayer != layer && this.selectedLayer != precise {
+	if global.SelectedLayerState != global.Layer && global.SelectedLayerState != global.Precise {
 		raygui.Disable()
 	}
-	this.row = uint8(raygui.Slider(
+	global.SelectedLayer = uint8(raygui.Slider(
 		this.itemBounds,
 		"Layer",
-		fmt.Sprintf("%d", this.row+1),
-		float32(this.row),
-		0, 7))
+		fmt.Sprintf("%d", global.SelectedLayer+1),
+		float32(global.SelectedLayer),
+		0, 7)) // TODO: need to get cube size instead of hardcode
 	raygui.Enable()
 	this.itemBounds.Y += this.itemBounds.Height + this.padding.Y
 
-	if this.selectedLayer != column && this.selectedLayer != precise {
+	if global.SelectedLayerState != global.Column && global.SelectedLayerState != global.Precise {
 		raygui.Disable()
 	}
-	this.column = uint8(raygui.Slider(
+	global.SelectedColumn = uint8(raygui.Slider(
 		this.itemBounds,
 		"Column",
-		fmt.Sprintf("%d", this.column+1),
-		float32(this.column),
+		fmt.Sprintf("%d", global.SelectedColumn+1),
+		float32(global.SelectedColumn),
 		0, 7))
 	raygui.Enable()
 	this.itemBounds.Y += this.itemBounds.Height + style.BorderWidth + this.padding.Y
