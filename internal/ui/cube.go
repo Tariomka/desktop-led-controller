@@ -85,7 +85,7 @@ func (this *CubeGrid) Render() {
 
 	// for cube := range cg.IterateCubes() {
 	// for cube := range this.IterateCubesExtended(3, -1, -1) {
-	for cube := range this.IterateCubesStateful() {
+	for cube := range this.IterateCubesSelected() {
 		raylib.DrawCubeV(cube.pos, this.size, cube.color)
 		raylib.DrawCubeWiresV(cube.pos, this.size, raylib.Black)
 	}
@@ -108,52 +108,10 @@ func (this *CubeGrid) IterateCubes() iter.Seq[*Cube] {
 }
 
 func (this *CubeGrid) IterateCubesExtended(row, column, layer int) iter.Seq[*Cube] {
-	iterateZ := func() iter.Seq2[int, [][]*Cube] {
-		return func(yield func(int, [][]*Cube) bool) {
-			if layer > -1 && layer < len(this.cubes) {
-				yield(layer, this.cubes[layer])
-				return
-			}
-			for i, z := range this.cubes {
-				if !yield(i, z) {
-					return
-				}
-			}
-		}
-	}
-
-	iterateY := func(zIndex int) iter.Seq2[int, []*Cube] {
-		return func(yield func(int, []*Cube) bool) {
-			if column > -1 && column < len(this.cubes[zIndex]) {
-				yield(column, this.cubes[zIndex][column])
-				return
-			}
-			for i, y := range this.cubes[zIndex] {
-				if !yield(i, y) {
-					return
-				}
-			}
-		}
-	}
-
-	iterateX := func(zIndex, yIndex int) iter.Seq[*Cube] {
-		return func(yield func(*Cube) bool) {
-			if row > -1 && row < len(this.cubes[zIndex][yIndex]) {
-				yield(this.cubes[zIndex][yIndex][row])
-				return
-			}
-			for _, x := range this.cubes[zIndex][yIndex] {
-				if !yield(x) {
-					return
-				}
-			}
-		}
-	}
-
 	return func(yield func(*Cube) bool) {
-		for layerIndex, _ := range iterateZ() {
-			for columnIndex, _ := range iterateY(layerIndex) {
-				for cube := range iterateX(layerIndex, columnIndex) {
+		for z := range common.IterateSingleOrAll(this.cubes, layer) {
+			for y := range common.IterateSingleOrAll(z, column) {
+				for cube := range common.IterateSingleOrAll(y, row) {
 					if !yield(cube) {
 						return
 					}
@@ -163,7 +121,7 @@ func (this *CubeGrid) IterateCubesExtended(row, column, layer int) iter.Seq[*Cub
 	}
 }
 
-func (this *CubeGrid) IterateCubesStateful() iter.Seq[*Cube] {
+func (this *CubeGrid) IterateCubesSelected() iter.Seq[*Cube] {
 	xIndex, yIndex, zIndex := -1, -1, -1
 	if global.SelectedLayerState == global.Layer || global.SelectedLayerState == global.Precise {
 		zIndex = int(global.SelectedLayer)
@@ -178,7 +136,7 @@ func (this *CubeGrid) updateCollision() {
 	this.ray = raylib.GetScreenToWorldRay(raylib.GetMousePosition(), *this.camera)
 
 	// TODO: add single slice iterating when slicing in editor panel is created
-	for cube := range this.IterateCubesStateful() {
+	for cube := range this.IterateCubesSelected() {
 		// This hits multiple cubes, need to think on how to handle only a single collision
 		this.collision = raylib.GetRayCollisionBox(
 			this.ray,
