@@ -122,6 +122,10 @@ func (this *CubeGrid) IterateCubesExtended(row, column, layer int) iter.Seq[*Cub
 }
 
 func (this *CubeGrid) IterateCubesSelected() iter.Seq[*Cube] {
+	if global.SelectedLayerState == global.All {
+		return this.IterateCubes()
+	}
+
 	xIndex, yIndex, zIndex := -1, -1, -1
 	if global.SelectedLayerState == global.Layer || global.SelectedLayerState == global.Precise {
 		zIndex = int(global.SelectedLayer)
