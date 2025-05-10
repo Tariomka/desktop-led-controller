@@ -25,7 +25,10 @@ type CubeGrid struct {
 	collision raylib.RayCollision
 }
 
-func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3, window raylib.Vector2) component.Renderer {
+func NewCubeGrid(
+	xCount, yCount, zCount uint8,
+	size raylib.Vector3,
+	window raylib.Vector2) component.Renderer {
 	sizeX := 1 + size.X
 	sizeY := 1 + size.Y
 	sizeZ := 1 + size.Z
@@ -42,8 +45,7 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3, window rayli
 					pos: raylib.NewVector3(
 						sizeX*float32(x),
 						sizeZ*float32(z),
-						sizeY*float32(y),
-					),
+						sizeY*float32(y)),
 					color: common.ColorOff,
 				}
 			}
@@ -83,8 +85,6 @@ func (this *CubeGrid) Render() {
 	raylib.ClearBackground(raylib.DarkGray)
 	raylib.BeginMode3D(*this.camera)
 
-	// for cube := range cg.IterateCubes() {
-	// for cube := range this.IterateCubesExtended(3, -1, -1) {
 	for cube := range this.IterateCubesSelected() {
 		raylib.DrawCubeV(cube.pos, this.size, cube.color)
 		raylib.DrawCubeWiresV(cube.pos, this.size, raylib.Black)
@@ -145,9 +145,14 @@ func (this *CubeGrid) updateCollision() {
 		this.collision = raylib.GetRayCollisionBox(
 			this.ray,
 			raylib.NewBoundingBox(
-				raylib.NewVector3(cube.pos.X-this.size.X/2, cube.pos.Y-this.size.Y/2, cube.pos.Z-this.size.Z/2),
-				raylib.NewVector3(cube.pos.X+this.size.X/2, cube.pos.Y+this.size.Y/2, cube.pos.Z+this.size.Z/2),
-			))
+				raylib.NewVector3(
+					cube.pos.X-this.size.X/2,
+					cube.pos.Y-this.size.Y/2,
+					cube.pos.Z-this.size.Z/2),
+				raylib.NewVector3(
+					cube.pos.X+this.size.X/2,
+					cube.pos.Y+this.size.Y/2,
+					cube.pos.Z+this.size.Z/2)))
 
 		if this.collision.Hit {
 			cube.color = global.SelectedColor

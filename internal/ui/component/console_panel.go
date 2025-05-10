@@ -37,7 +37,7 @@ func newConsolePanel(base Panel) *ConsolePanel {
 	}
 
 	go consolePanel.channelLoop()
-	global.Messenger.RegisterReceiver(
+	global.RegisterMessageReceiver(
 		constants.UIConsolePanel,
 		func(message any) {
 			stringMessage, ok := message.(string)
@@ -69,7 +69,8 @@ func (this *ConsolePanel) Update() {
 	this.visibleLineCount = min(
 		int(this.Height/(style.ListItemHeight+style.ListItemSpacing)),
 		this.messages.Length())
-	if this.currentScrollIndex < 0 || this.currentScrollIndex > this.messages.Length()-this.visibleLineCount {
+	if this.currentScrollIndex < 0 ||
+		this.currentScrollIndex > this.messages.Length()-this.visibleLineCount {
 		this.currentScrollIndex = 0
 	}
 	this.endScrollIndex = this.currentScrollIndex + this.visibleLineCount
@@ -125,7 +126,7 @@ func (this *ConsolePanel) updateScrollbar() {
 		return
 	}
 
-	percentVisible := float32((this.endScrollIndex - this.currentScrollIndex)) / float32(this.messages.Length())
+	percentVisible := float32(this.endScrollIndex-this.currentScrollIndex) / float32(this.messages.Length())
 	this.scrollbarSliderSize = this.Height * percentVisible
 }
 

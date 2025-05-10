@@ -17,7 +17,7 @@ const (
 
 // Globally accesable state
 var (
-	Messenger *common.Messenger
+	messenger *common.Messenger = common.NewMessanger()
 
 	ShouldChangeColor bool
 	SelectedColor     color.RGBA = common.ColorOff
@@ -28,3 +28,11 @@ var (
 
 	WindowShouldClose bool
 )
+
+func RegisterMessageReceiver(key string, receiver common.MessageReceiver) {
+	messenger.RegisterReceiver(key, receiver)
+}
+
+func SendMessage(key string, message any) {
+	messenger.Send(key, message)
+}

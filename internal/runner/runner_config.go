@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
+
+	"github.com/Tariomka/desktop-led-controller/internal/common"
 )
+
+const configFilename = "config.json"
 
 type RunnerConfig struct {
 	IP   string `json:"IP,omitempty"`
@@ -19,29 +22,29 @@ func NewConfig() RunnerConfig {
 		return defaultConfig()
 	}
 
-	return config
+	return *config
 }
 
-func readConfigFromFile() (RunnerConfig, error) {
-	path, err := os.Executable()
+func readConfigFromFile() (*RunnerConfig, error) {
+	fullPath, err := common.GetFullPathFromRelativePath(configFilename)
 	if err != nil {
-		fmt.Printf("[CONFIG] Error reading executable directory.\n")
-		return RunnerConfig{}, err
+		fmt.Printf("[CONFIG] Error reading full path.\n")
+		return nil, err
 	}
 
-	data, err := os.ReadFile(fmt.Sprintf("%s/%s", filepath.Dir(path), "config.json"))
+	data, err := os.ReadFile(fullPath)
 	if err != nil {
 		fmt.Printf("[CONFIG] Error reading config.\n")
-		return RunnerConfig{}, err
+		return nil, err
 	}
 
 	var rc RunnerConfig
 	if err := json.Unmarshal(data, &rc); err != nil {
 		fmt.Printf("[CONFIG] Error unmarshalling config.\n")
-		return RunnerConfig{}, err
+		return nil, err
 	}
 
-	return rc, nil
+	return &rc, nil
 }
 
 func defaultConfig() RunnerConfig {

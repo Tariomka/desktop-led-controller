@@ -29,7 +29,7 @@ func newMenuPanel(base Panel) *MenuPanel {
 	}
 
 	go menuPanel.channelLoop()
-	global.Messenger.RegisterReceiver(
+	global.RegisterMessageReceiver(
 		constants.UIMenuPanel,
 		func(message any) { menuPanel.channel <- message })
 
@@ -111,7 +111,7 @@ func (this *MenuPanel) renderConnect() {
 	case 0:
 		if raygui.Button(buttonBounds, raygui.IconText(raygui.ICON_LOCK_CLOSE, "Connect")) {
 			this.connectionStatus = 1
-			global.Messenger.Send(constants.TCPClient, models.TCPConnectMessage{})
+			global.SendMessage(constants.TCPClient, models.TCPConnectMessage{})
 		}
 	case 1:
 		raygui.Disable()
@@ -120,7 +120,7 @@ func (this *MenuPanel) renderConnect() {
 	case 2:
 		if raygui.Button(buttonBounds, raygui.IconText(raygui.ICON_LOCK_OPEN, "Disconnect")) {
 			this.connectionStatus = 3
-			global.Messenger.Send(constants.TCPClient, models.TCPDisconnectMessage{})
+			global.SendMessage(constants.TCPClient, models.TCPDisconnectMessage{})
 		}
 	case 3:
 		raygui.Disable()
@@ -142,7 +142,7 @@ func (this *MenuPanel) channelLoop() {
 				continue
 			}
 			this.connectionStatus = 1
-			global.Messenger.Send(constants.TCPClient, models.TCPConnectMessage{})
+			global.SendMessage(constants.TCPClient, models.TCPConnectMessage{})
 		}
 	}
 }

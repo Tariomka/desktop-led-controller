@@ -48,7 +48,7 @@ func NewClient(config ClientConfig) *LedClient {
 	}
 
 	go client.channelLoop()
-	global.Messenger.RegisterReceiver(
+	global.RegisterMessageReceiver(
 		constants.TCPClient,
 		func(message any) { client.channel <- message })
 
@@ -84,7 +84,7 @@ func (this *LedClient) Connect() {
 	connection, err := net.Dial("tcp", this.address)
 	if err != nil {
 		this.logger.Error("tcp client dial failure", "error", err)
-		global.Messenger.Send(constants.UIMenuPanel, models.DisconnectedMessage{})
+		global.SendMessage(constants.UIMenuPanel, models.DisconnectedMessage{})
 		return
 	}
 
@@ -99,7 +99,7 @@ func (this *LedClient) Connect() {
 	go this.receive()
 	go this.send()
 
-	global.Messenger.Send(constants.UIMenuPanel, models.ConnectedMessage{})
+	global.SendMessage(constants.UIMenuPanel, models.ConnectedMessage{})
 }
 
 func (this *LedClient) Disconnect() {
@@ -112,7 +112,7 @@ func (this *LedClient) Disconnect() {
 		this.connection.Close()
 		this.connection = nil
 	}
-	global.Messenger.Send(constants.UIMenuPanel, models.DisconnectedMessage{})
+	global.SendMessage(constants.UIMenuPanel, models.DisconnectedMessage{})
 	this.logger.Debug("action taken - Disconnect(ed)")
 }
 

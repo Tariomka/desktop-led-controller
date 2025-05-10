@@ -4,6 +4,9 @@ import (
 	"encoding/binary"
 	"image/color"
 	"iter"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 func IntToRGBA(value int64) color.RGBA {
@@ -17,7 +20,7 @@ func IntToRGBA(value int64) color.RGBA {
 	}
 }
 
-func IntToRGBAEx(value int64, alpha uint8) color.RGBA {
+func IntToRGBAExtended(value int64, alpha uint8) color.RGBA {
 	base := IntToRGBA(value)
 	base.A = alpha
 	return base
@@ -36,4 +39,29 @@ func IterateSingleOrAll[T any](slice []T, index int) iter.Seq[T] {
 			}
 		}
 	}
+}
+
+func GetFullPathFromRelativePath(elements ...string) (string, error) {
+	for _, element := range elements {
+		if strings.Contains(element, "..") {
+			return "", ErrOutsideBasePath
+		}
+	}
+
+	path, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+
+	// TODO: check if Dir != elements?
+	elements = append(
+		[]string{filepath.Dir(path)},
+		elements...,
+	)
+
+	return filepath.Join(elements...), nil
+}
+
+func GetRelativeDirFromRelativePath(elements ...string) string {
+	return filepath.Dir(filepath.Join(elements...))
 }
