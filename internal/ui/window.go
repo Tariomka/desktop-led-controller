@@ -1,8 +1,8 @@
 package ui
 
 import (
+	"github.com/Tariomka/desktop-led-controller/internal/global"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/component"
-	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )

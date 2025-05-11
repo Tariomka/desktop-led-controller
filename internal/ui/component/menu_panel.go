@@ -2,8 +2,8 @@ package component
 
 import (
 	"github.com/Tariomka/desktop-led-controller/internal/common/constants"
+	"github.com/Tariomka/desktop-led-controller/internal/global"
 	"github.com/Tariomka/desktop-led-controller/internal/models"
-	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/utils"
 	"github.com/gen2brain/raylib-go/raygui"

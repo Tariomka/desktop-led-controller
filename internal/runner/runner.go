@@ -6,11 +6,11 @@ import (
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
 	"github.com/Tariomka/desktop-led-controller/internal/common/constants"
+	"github.com/Tariomka/desktop-led-controller/internal/global"
 	"github.com/Tariomka/desktop-led-controller/internal/models"
 	"github.com/Tariomka/desktop-led-controller/internal/services"
 	"github.com/Tariomka/desktop-led-controller/internal/tcp"
 	"github.com/Tariomka/desktop-led-controller/internal/ui"
-	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 )
 
 type IRunner interface {
@@ -21,7 +21,7 @@ type IRunner interface {
 type LedClientRunner struct {
 	window       *ui.Window
 	tcpClient    *tcp.LedClient
-	ledProcessor *services.LedProcService
+	ledProcessor services.ProcessorService
 	logger       *slog.Logger
 
 	config RunnerConfig
@@ -47,6 +47,7 @@ func NewRunner(config RunnerConfig) IRunner {
 }
 
 func (this *LedClientRunner) Start() {
+	this.ledProcessor.Save()
 	this.window.Start()
 	this.window.Render()
 }

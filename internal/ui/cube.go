@@ -4,8 +4,10 @@ import (
 	"iter"
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
+	"github.com/Tariomka/desktop-led-controller/internal/common/constants"
+	"github.com/Tariomka/desktop-led-controller/internal/global"
+	"github.com/Tariomka/desktop-led-controller/internal/models"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/component"
-	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -17,6 +19,8 @@ type CubeGrid struct {
 	screen    raylib.Rectangle
 	ray       raylib.Ray
 	collision raylib.RayCollision
+
+	channel chan any
 }
 
 func NewCubeGrid(
@@ -60,7 +64,14 @@ func NewCubeGrid(
 			0, 0,
 			window.X,
 			window.Y),
+		channel: make(chan any, 1),
 	}
+
+	go cubeGrid.channelLoop()
+	global.RegisterMessageReceiver(
+		constants.UICubeGrid,
+		func(message any) { cubeGrid.channel <- message })
+
 	return cubeGrid
 }
 
@@ -150,6 +161,22 @@ func (this *CubeGrid) updateCollision() {
 
 		if this.collision.Hit {
 			cube.Color = global.SelectedColor
+		}
+	}
+}
+
+func (this *CubeGrid) resetCubes() {
+	for cube := range this.IterateCubes() {
+		cube.Color = common.ColorOff
+	}
+}
+
+// Blocking state loop
+func (this *CubeGrid) channelLoop() {
+	for {
+		switch (<-this.channel).(type) {
+		case models.ResetCubesMessage:
+			this.resetCubes()
 		}
 	}
 }

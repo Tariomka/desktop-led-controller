@@ -11,8 +11,8 @@ import (
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
 	"github.com/Tariomka/desktop-led-controller/internal/common/constants"
+	"github.com/Tariomka/desktop-led-controller/internal/global"
 	"github.com/Tariomka/desktop-led-controller/internal/models"
-	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 	"github.com/Tariomka/led-common-lib/pkg/network"
 )
 
@@ -35,10 +35,7 @@ type LedClient struct {
 
 func NewClient(config ClientConfig) *LedClient {
 	// TODO: validate config
-
-	if config.Logger == nil {
-		config.Logger = common.NewConsoleLogger(slog.LevelDebug)
-	}
+	config.Logger = common.EnsureLoggerExists(config.Logger)
 
 	client := &LedClient{
 		logger:      config.Logger,
@@ -155,6 +152,7 @@ func (this *LedClient) receive() {
 			return
 		}
 
+		// TODO: remove placeholder
 		print("Data length: ")
 		println(n)
 		print("Data: ")

@@ -19,3 +19,11 @@ func NewStructuredLogger(writer io.Writer, level slog.Level) *slog.Logger {
 		func(message string) { writer.Write([]byte(message + "\n")) },
 		&slog.HandlerOptions{Level: level}))
 }
+
+func EnsureLoggerExists(logger *slog.Logger) *slog.Logger {
+	if logger != nil {
+		return logger
+	}
+
+	return NewConsoleLogger(slog.LevelDebug)
+}

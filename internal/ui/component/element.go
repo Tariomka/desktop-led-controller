@@ -1,7 +1,7 @@
 package component
 
 import (
-	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
+	"github.com/Tariomka/desktop-led-controller/internal/global"
 	"github.com/gen2brain/raylib-go/raygui"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
