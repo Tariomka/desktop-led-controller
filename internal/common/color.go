@@ -1,6 +1,11 @@
 package common
 
-import raylib "github.com/gen2brain/raylib-go/raylib"
+import (
+	"encoding/binary"
+	"image/color"
+
+	raylib "github.com/gen2brain/raylib-go/raylib"
+)
 
 const (
 	alpha = 120
@@ -18,3 +23,20 @@ var (
 	ColorViolet = raylib.NewColor(on, off, on, alpha)
 	ColorWhite  = raylib.NewColor(on, on, on, alpha)
 )
+
+func IntToRGBA(value int64) color.RGBA {
+	bytes := make([]byte, 8)
+	binary.LittleEndian.PutUint64(bytes, uint64(value))
+	return color.RGBA{
+		R: bytes[3],
+		G: bytes[2],
+		B: bytes[1],
+		A: bytes[0],
+	}
+}
+
+func IntToRGBAExtended(value int64, alpha uint8) color.RGBA {
+	base := IntToRGBA(value)
+	base.A = alpha
+	return base
+}

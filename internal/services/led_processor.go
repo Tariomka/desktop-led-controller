@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 
@@ -17,20 +18,69 @@ import (
 const (
 	secureDirMode  = os.FileMode(0755)
 	secureFileMode = os.FileMode(0644)
-	lightShowDir   = "light_shows"
+
+	lightShowDir       = "light_shows"
+	lightShowExtension = ".ls"
 )
+
+type LedProcConfig struct {
+	Logger *slog.Logger
+}
 
 type LedProcService struct {
 	name         string
-	layout       led.LayoutWorker
+	layoutWorker led.LayoutWorker
 	framesBuffer led.LightShow
+
+	fileService *FileService
+	logger      *slog.Logger
+	// TODO: add messenger and channel to communicate from and to UI (for saving, loading, fetching, etc.)
 }
 
-func NewLedProcService() *LedProcService {
-	return &LedProcService{}
+func NewLedProcService(config LedProcConfig) *LedProcService {
+	if config.Logger == nil {
+		config.Logger = common.NewConsoleLogger(slog.LevelDebug)
+	}
+
+	return &LedProcService{
+		fileService:  NewFileService(config.Logger),
+		logger:       config.Logger,
+		layoutWorker: &led.LedLayout{},
+	}
 }
 
-type FileService struct{}
+func (this *LedProcService) AddToBuffer(layout *common.CubeLayout) {
+	// In the UI when "Next Frame" is clicked, the currect CubeGrid state will be saved and
+	// CubeGrid cubes will be reset
+}
+
+func (this *LedProcService) Fetch() {
+	// TODO: add logic to fetch all "*.ls" files from "light_shows/" directory
+	// This will be used to query saved cube configurations and the output will be sent to UI
+	// to select which configuration to Load in.
+}
+
+func (this *LedProcService) Save() {
+
+}
+
+func (this *LedProcService) Load() {
+
+}
+
+type FileService struct {
+	logger *slog.Logger
+}
+
+func NewFileService(logger *slog.Logger) *FileService {
+	if logger == nil {
+		logger = common.NewConsoleLogger(slog.LevelDebug)
+	}
+
+	return &FileService{
+		logger: logger,
+	}
+}
 
 func (this *FileService) AppendToFile(filePath string, payload []byte) error {
 	filePath = filepath.Join(lightShowDir, filePath)
@@ -73,6 +123,10 @@ func (this *FileService) ReadFileContent(filePath string) []byte {
 	}
 
 	return buffer[:n]
+}
+
+func (this *FileService) FindFiles(glob string) {
+
 }
 
 func createFolderIfNotExists(directory string) (fullPath string, err error) {

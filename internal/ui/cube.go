@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"image/color"
 	"iter"
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
@@ -10,13 +9,8 @@ import (
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
-type Cube struct {
-	pos   raylib.Vector3
-	color color.RGBA
-}
-
 type CubeGrid struct {
-	cubes [][][]*Cube
+	cubes common.CubeLayout
 	size  raylib.Vector3
 
 	camera    *raylib.Camera
@@ -33,20 +27,20 @@ func NewCubeGrid(
 	sizeY := 1 + size.Y
 	sizeZ := 1 + size.Z
 
-	grid := make([][][]*Cube, zCount)
+	grid := make([][][]*common.Cube, zCount)
 	for z := range grid {
-		grid[z] = make([][]*Cube, yCount)
+		grid[z] = make([][]*common.Cube, yCount)
 		for y := range grid[z] {
-			grid[z][y] = make([]*Cube, xCount)
+			grid[z][y] = make([]*common.Cube, xCount)
 			for x := range grid[z][y] {
-				grid[z][y][x] = &Cube{
+				grid[z][y][x] = &common.Cube{
 					// this is not a mistake. 'y' and 'z' are switched
 					// to keep the same perspecive as on the physical cube
-					pos: raylib.NewVector3(
+					Pos: raylib.NewVector3(
 						sizeX*float32(x),
 						sizeZ*float32(z),
 						sizeY*float32(y)),
-					color: common.ColorOff,
+					Color: common.ColorOff,
 				}
 			}
 		}
@@ -86,15 +80,15 @@ func (this *CubeGrid) Render() {
 	raylib.BeginMode3D(*this.camera)
 
 	for cube := range this.IterateCubesSelected() {
-		raylib.DrawCubeV(cube.pos, this.size, cube.color)
-		raylib.DrawCubeWiresV(cube.pos, this.size, raylib.Black)
+		raylib.DrawCubeV(cube.Pos, this.size, cube.Color)
+		raylib.DrawCubeWiresV(cube.Pos, this.size, raylib.Black)
 	}
 
 	raylib.EndMode3D()
 }
 
-func (this *CubeGrid) IterateCubes() iter.Seq[*Cube] {
-	return func(yield func(*Cube) bool) {
+func (this *CubeGrid) IterateCubes() iter.Seq[*common.Cube] {
+	return func(yield func(*common.Cube) bool) {
 		for _, z := range this.cubes {
 			for _, y := range z {
 				for _, cube := range y {
@@ -107,8 +101,8 @@ func (this *CubeGrid) IterateCubes() iter.Seq[*Cube] {
 	}
 }
 
-func (this *CubeGrid) IterateCubesExtended(row, column, layer int) iter.Seq[*Cube] {
-	return func(yield func(*Cube) bool) {
+func (this *CubeGrid) IterateCubesExtended(row, column, layer int) iter.Seq[*common.Cube] {
+	return func(yield func(*common.Cube) bool) {
 		for z := range common.IterateSingleOrAll(this.cubes, layer) {
 			for y := range common.IterateSingleOrAll(z, column) {
 				for cube := range common.IterateSingleOrAll(y, row) {
@@ -121,7 +115,7 @@ func (this *CubeGrid) IterateCubesExtended(row, column, layer int) iter.Seq[*Cub
 	}
 }
 
-func (this *CubeGrid) IterateCubesSelected() iter.Seq[*Cube] {
+func (this *CubeGrid) IterateCubesSelected() iter.Seq[*common.Cube] {
 	if global.SelectedLayerState == global.All {
 		return this.IterateCubes()
 	}
@@ -146,16 +140,16 @@ func (this *CubeGrid) updateCollision() {
 			this.ray,
 			raylib.NewBoundingBox(
 				raylib.NewVector3(
-					cube.pos.X-this.size.X/2,
-					cube.pos.Y-this.size.Y/2,
-					cube.pos.Z-this.size.Z/2),
+					cube.Pos.X-this.size.X/2,
+					cube.Pos.Y-this.size.Y/2,
+					cube.Pos.Z-this.size.Z/2),
 				raylib.NewVector3(
-					cube.pos.X+this.size.X/2,
-					cube.pos.Y+this.size.Y/2,
-					cube.pos.Z+this.size.Z/2)))
+					cube.Pos.X+this.size.X/2,
+					cube.Pos.Y+this.size.Y/2,
+					cube.Pos.Z+this.size.Z/2)))
 
 		if this.collision.Hit {
-			cube.color = global.SelectedColor
+			cube.Color = global.SelectedColor
 		}
 	}
 }

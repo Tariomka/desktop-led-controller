@@ -25,6 +25,8 @@ func NewConfig() RunnerConfig {
 	return *config
 }
 
+// TODO: add config Save/Update
+
 func readConfigFromFile() (*RunnerConfig, error) {
 	fullPath, err := common.GetFullPathFromRelativePath(configFilename)
 	if err != nil {

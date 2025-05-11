@@ -11,7 +11,6 @@ import (
 	"github.com/Tariomka/desktop-led-controller/internal/tcp"
 	"github.com/Tariomka/desktop-led-controller/internal/ui"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
-	"github.com/Tariomka/led-common-lib/pkg/led"
 )
 
 type IRunner interface {
@@ -20,9 +19,9 @@ type IRunner interface {
 }
 
 type LedClientRunner struct {
-	Window       *ui.Window
-	Client       *tcp.LedClient
-	LayoutWorker led.LayoutWorker
+	window       *ui.Window
+	tcpClient    *tcp.LedClient
+	ledProcessor *services.LedProcService
 	logger       *slog.Logger
 
 	config RunnerConfig
@@ -33,29 +32,26 @@ func NewRunner(config RunnerConfig) IRunner {
 	logger := common.NewStructuredLogger(os.Stdout, slog.LevelDebug)
 
 	return &LedClientRunner{
-		Window: ui.NewWindow(),
-		Client: tcp.NewClient(tcp.ClientConfig{
+		window: ui.NewWindow(),
+		tcpClient: tcp.NewClient(tcp.ClientConfig{
 			Logger: logger,
 			IP:     config.IP,
 			Port:   config.Port,
 		}),
-		LayoutWorker: &led.LedLayout{},
-		logger:       logger,
-		config:       config,
+		ledProcessor: services.NewLedProcService(services.LedProcConfig{
+			Logger: logger,
+		}),
+		logger: logger,
+		config: config,
 	}
 }
 
 func (this *LedClientRunner) Start() {
-	// TODO: THIS iS TEMP, CLEAN LATER
-	fs := &services.FileService{}
-	content := fs.ReadFileContent("aahhh")
-	this.logger.Debug("Read some stuff from file", "content", string(content))
-
-	this.Window.Start()
-	this.Window.Render()
+	this.window.Start()
+	this.window.Render()
 }
 
 func (this *LedClientRunner) Stop() {
 	global.SendMessage(constants.TCPClient, models.TCPDisconnectMessage{})
-	this.Window.Stop()
+	this.window.Stop()
 }
