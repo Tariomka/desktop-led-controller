@@ -113,7 +113,7 @@ func (this *LedClient) Disconnect() {
 	this.logger.Debug("action taken - Disconnect(ed)")
 }
 
-// Blocking state loop
+// Blocking message loop
 func (this *LedClient) channelLoop() {
 	for {
 		switch message := (<-this.channel).(type) {

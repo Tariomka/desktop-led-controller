@@ -48,7 +48,7 @@ func (this *FileService) ReadFileContent(filePath string) []byte {
 	}
 
 	defer file.Close()
-	buffer := make([]byte, 1024)
+	buffer := make([]byte, 1024) // TODO: keep reading?
 	n, err := file.Read(buffer)
 	if err != nil {
 		if errors.Is(err, io.EOF) {

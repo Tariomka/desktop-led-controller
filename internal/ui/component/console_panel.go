@@ -192,7 +192,7 @@ func (this *ConsolePanel) renderMessages() {
 	}
 }
 
-// Blocking state loop
+// Blocking message loop
 func (this *ConsolePanel) channelLoop() {
 	for {
 		this.messages.Add(<-this.channel)

@@ -18,6 +18,8 @@ type EditPanel struct {
 	colorSelector bool
 	activeColor   int32
 	colorChanged  bool
+
+	// first bool
 }
 
 func newEditPanel(base Panel) *EditPanel {
@@ -56,6 +58,13 @@ func (this *EditPanel) Update() {
 		default:
 			global.SelectedColor = common.ColorOff
 		}
+		// if !this.first {
+		// 	global.SendMessage(constants.UICubeGrid, models.SaveCubeStateMessage{})
+		// 	this.first = !this.first
+		// } else {
+		// 	global.SendMessage(constants.ServiceLedProcessor, models.SaveMessage{})
+		// 	this.first = !this.first
+		// }
 		this.colorChanged = false
 	}
 }

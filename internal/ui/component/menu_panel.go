@@ -130,7 +130,7 @@ func (this *MenuPanel) renderConnect() {
 	}
 }
 
-// Blocking state loop
+// Blocking message loop
 func (this *MenuPanel) channelLoop() {
 	for {
 		switch (<-this.channel).(type) {

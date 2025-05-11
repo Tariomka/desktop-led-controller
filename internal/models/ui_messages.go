@@ -5,3 +5,5 @@ type ConnectedMessage struct{}
 type DisconnectedMessage struct{}
 
 type ResetCubesMessage struct{}
+
+type SaveCubeStateMessage struct{}

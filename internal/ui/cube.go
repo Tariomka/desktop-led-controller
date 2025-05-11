@@ -50,6 +50,11 @@ func NewCubeGrid(
 		}
 	}
 
+	grid[0][0][0].Color = common.ColorRed
+	grid[0][0][1].Color = common.ColorBlue
+	grid[0][0][2].Color = common.ColorGreen
+	grid[1][1][1].Color = common.ColorWhite
+
 	cubeGrid := &CubeGrid{
 		cubes: grid,
 		size:  size,
@@ -171,12 +176,16 @@ func (this *CubeGrid) resetCubes() {
 	}
 }
 
-// Blocking state loop
+// Blocking message loop
 func (this *CubeGrid) channelLoop() {
 	for {
 		switch (<-this.channel).(type) {
 		case models.ResetCubesMessage:
 			this.resetCubes()
+		case models.SaveCubeStateMessage:
+			global.SendMessage(
+				constants.ServiceLedProcessor,
+				models.AddToBufferMessage{Layout: &this.cubes})
 		}
 	}
 }

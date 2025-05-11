@@ -21,7 +21,7 @@ type IRunner interface {
 type LedClientRunner struct {
 	window       *ui.Window
 	tcpClient    *tcp.LedClient
-	ledProcessor services.ProcessorService
+	ledProcessor *services.LedProcService
 	logger       *slog.Logger
 
 	config RunnerConfig
