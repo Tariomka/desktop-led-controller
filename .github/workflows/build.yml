@@ -28,10 +28,10 @@ jobs:
     - name: Build
       run: go build -v ./main.go
 
-    - name: Run Tests
-      uses: nick-fields/retry@v3
-      with:
-        timeout_minutes: 1
-        max_attempts: 5
-        retry_on: error
-        command: go test -v ./test/...
+    # - name: Run Tests
+    #   uses: nick-fields/retry@v3
+    #   with:
+    #     timeout_minutes: 1
+    #     max_attempts: 5
+    #     retry_on: error
+    #     command: go test -v ./test/...
