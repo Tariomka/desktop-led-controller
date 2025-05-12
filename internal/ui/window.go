@@ -28,6 +28,8 @@ type Window struct {
 
 	hud      component.Renderer
 	cubeGrid component.Renderer
+
+	config WindowConfig
 }
 
 func NewWindow(configFuncs ...WindowConfigFunc) *Window {
@@ -39,11 +41,7 @@ func NewWindow(configFuncs ...WindowConfigFunc) *Window {
 	return &Window{
 		width:  config.WindowWidth,
 		height: config.WindowHeight,
-		cubeGrid: NewCubeGrid(
-			config.CubeBaseSize,
-			config.CubeBaseSize,
-			config.CubeHeight,
-			raylib.NewVector3(1, 1, 1)),
+		config: config,
 	}
 }
 
@@ -54,6 +52,11 @@ func (this *Window) Start() {
 
 	style.LoadStyle()
 	this.hud = NewPanelControler()
+	this.cubeGrid = NewCubeGrid(
+		this.config.CubeBaseSize,
+		this.config.CubeBaseSize,
+		this.config.CubeHeight,
+		raylib.NewVector3(1, 1, 1))
 }
 
 func (_ *Window) Stop() {
