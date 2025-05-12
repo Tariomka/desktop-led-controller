@@ -47,7 +47,6 @@ func NewRunner(config RunnerConfig) IRunner {
 }
 
 func (this *LedClientRunner) Start() {
-	this.ledProcessor.Save()
 	this.window.Start()
 	this.window.Render()
 }

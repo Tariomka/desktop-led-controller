@@ -26,6 +26,9 @@ var (
 	SelectedLayer      uint8
 	SelectedColumn     uint8
 
+	SelectedFrame   uint32
+	TotalFrameCount uint32
+
 	WindowShouldClose bool
 )
 

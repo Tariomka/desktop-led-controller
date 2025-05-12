@@ -36,7 +36,7 @@ type LedProcConfig struct {
 type LedProcService struct {
 	name         string
 	layoutWorker led.LayoutWorker
-	framesBuffer led.LightShow
+	framesBuffer []common.CubeFrame
 
 	fileService *FileService
 	logger      *slog.Logger
@@ -61,57 +61,85 @@ func NewLedProcService(config LedProcConfig) *LedProcService {
 	return service
 }
 
-func (this *LedProcService) AddToBuffer(layout *common.CubeLayout) {
-	// In the UI when "Next Frame" is clicked, the currect CubeGrid state will be saved and
-	// CubeGrid cubes will be reset
-	this.framesBuffer = append(this.framesBuffer, func(lw led.LayoutWorker) {
-		for zIndex, z := range *layout {
-			for yIndex, y := range z {
-				for xIndex, cube := range y {
-					lw.SetSingle(uint8(xIndex), uint8(yIndex), uint8(zIndex), led.RGBAToColor(cube.Color))
-				}
-			}
-		}
-	})
-}
-
 func (this *LedProcService) Fetch() {
 	// TODO: add logic to fetch all "*.ls" files from "light_shows/" directory
 	// This will be used to query saved cube configurations and the output will be sent to UI
 	// to select which configuration to Load in.
+	panic(common.ErrNotImplemented)
 }
 
 func (this *LedProcService) Save() {
-	var payload []byte
-	payload = append(payload, byte(v1), byte(network.RGB8x8), byte(len(this.name)))
-	payload = append(payload, []byte(this.name)...)
-	payload = append(payload, '\n')
+	this.logger.Debug("[LED_PROC_SERVICE] saving light show data")
 
-	for _, setFrame := range this.framesBuffer {
-		setFrame(this.layoutWorker)
+	relativeFilePath := filepath.Join(lightShowDir, this.name+lightShowExtension)
+	if err := this.fileService.SaveFile(
+		relativeFilePath,
+		this.getLightShowPayload()...); err != nil {
+		this.logger.Error(
+			"[LED_PROC_SERVICE] failed to save light show data",
+			"file path", relativeFilePath,
+			"error", err)
+		return
+	}
+
+	this.logger.Debug(
+		"[LED_PROC_SERVICE] saving successfully finished",
+		"file path", relativeFilePath)
+}
+
+func (this *LedProcService) Load() {
+	panic(common.ErrNotImplemented)
+}
+
+func (this *LedProcService) LoadFrame(index uint32) {
+	bufferSize := uint32(len(this.framesBuffer))
+	if index >= bufferSize {
+		global.SendMessage(constants.UICubeGrid, models.ResetMessage{})
+		global.SelectedFrame = bufferSize
+		return
+	}
+
+	global.SendMessage(constants.UICubeGrid, models.SetFrameMessage{Frame: this.framesBuffer[index]})
+	global.SelectedFrame = index
+}
+
+func (this *LedProcService) getLightShowPayload() [][]byte {
+	header := []byte{byte(v1), byte(network.RGB8x8), byte(len(this.name))}
+	header = append(header, []byte(this.name)...)
+
+	var payloads [][]byte
+	payloads = append(payloads, header)
+
+	for _, frame := range this.framesBuffer {
+		this.loadIntoLayout(frame)
+		var payload []byte
 		for _, content := range this.layoutWorker.IterateSlices() {
 			payload = append(payload, content...)
 		}
-		payload = append(payload, '\n')
+		payloads = append(payloads, payload)
 
 		this.layoutWorker.ResetBlock()
 	}
 
-	relativeFilePath := filepath.Join(lightShowDir, this.name+lightShowExtension)
-	this.logger.Debug(
-		"[LED_PROC_SERVICE] saving",
-		"path", relativeFilePath,
-		"payload", string(payload))
-
-	this.fileService.AppendToFile(relativeFilePath, payload)
+	return payloads
 }
 
-func (this *LedProcService) Load() {
+func (this *LedProcService) loadIntoLayout(frame common.CubeFrame) {
+	setLayout := led.Frame(func(lw led.LayoutWorker) {
+		for zIndex, z := range frame {
+			for yIndex, y := range z {
+				for xIndex, cube := range y {
+					lw.SetSingle(
+						uint8(xIndex),
+						uint8(yIndex),
+						uint8(zIndex),
+						led.RGBAToColor(cube.Color))
+				}
+			}
+		}
+	})
 
-}
-
-func (this *LedProcService) SetName(name string) {
-	this.name = name
+	setLayout(this.layoutWorker)
 }
 
 // Blocking message loop
@@ -119,15 +147,23 @@ func (this *LedProcService) channelLoop() {
 	for {
 		switch message := (<-this.channel).(type) {
 		case models.RenameMessage:
-			this.SetName(message.Name)
+			this.name = message.Name
 		case models.AddToBufferMessage:
-			this.AddToBuffer(message.Layout)
+			this.framesBuffer = append(this.framesBuffer, common.DeepCloneLayout(message.Frame))
+			global.TotalFrameCount = uint32(len(this.framesBuffer))
+			global.SelectedFrame = global.TotalFrameCount
 		case models.LoadMessage:
 			this.Load()
 		case models.SaveMessage:
 			this.Save()
 		case models.FetchMessage:
 			this.Fetch()
+		case models.LoadFrameMessage:
+			this.LoadFrame(message.Index)
+		case models.ResetMessage:
+			this.framesBuffer = nil
+			global.TotalFrameCount = uint32(len(this.framesBuffer))
+			global.SelectedFrame = global.TotalFrameCount
 		default:
 			this.logger.Info("[LED_PROC_SERVICE] unproccessed message", "message", message)
 		}

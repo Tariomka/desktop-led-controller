@@ -12,7 +12,7 @@ import (
 )
 
 type CubeGrid struct {
-	cubes common.CubeLayout
+	frame common.CubeFrame
 	size  raylib.Vector3
 
 	camera    *raylib.Camera
@@ -25,8 +25,7 @@ type CubeGrid struct {
 
 func NewCubeGrid(
 	xCount, yCount, zCount uint8,
-	size raylib.Vector3,
-	window raylib.Vector2) component.Renderer {
+	size raylib.Vector3) component.Renderer {
 	sizeX := 1 + size.X
 	sizeY := 1 + size.Y
 	sizeZ := 1 + size.Z
@@ -50,13 +49,8 @@ func NewCubeGrid(
 		}
 	}
 
-	grid[0][0][0].Color = common.ColorRed
-	grid[0][0][1].Color = common.ColorBlue
-	grid[0][0][2].Color = common.ColorGreen
-	grid[1][1][1].Color = common.ColorWhite
-
 	cubeGrid := &CubeGrid{
-		cubes: grid,
+		frame: grid,
 		size:  size,
 		camera: &raylib.Camera{
 			Position:   raylib.NewVector3(30.0, 30.0, 30.0),
@@ -67,8 +61,8 @@ func NewCubeGrid(
 		},
 		screen: raylib.NewRectangle(
 			0, 0,
-			window.X,
-			window.Y),
+			float32(raylib.GetScreenWidth())/4*3,
+			float32(raylib.GetScreenHeight())),
 		channel: make(chan any, 1),
 	}
 
@@ -81,6 +75,11 @@ func NewCubeGrid(
 }
 
 func (this *CubeGrid) Update() {
+	if raylib.IsWindowResized() {
+		this.screen.Width = float32(raylib.GetScreenWidth()) / 4 * 3
+		this.screen.Height = float32(raylib.GetScreenHeight())
+	}
+
 	if global.ShouldChangeColor && raylib.IsMouseButtonPressed(raylib.MouseLeftButton) {
 		this.updateCollision()
 	}
@@ -105,7 +104,7 @@ func (this *CubeGrid) Render() {
 
 func (this *CubeGrid) IterateCubes() iter.Seq[*common.Cube] {
 	return func(yield func(*common.Cube) bool) {
-		for _, z := range this.cubes {
+		for _, z := range this.frame {
 			for _, y := range z {
 				for _, cube := range y {
 					if !yield(cube) {
@@ -119,7 +118,7 @@ func (this *CubeGrid) IterateCubes() iter.Seq[*common.Cube] {
 
 func (this *CubeGrid) IterateCubesExtended(row, column, layer int) iter.Seq[*common.Cube] {
 	return func(yield func(*common.Cube) bool) {
-		for z := range common.IterateSingleOrAll(this.cubes, layer) {
+		for z := range common.IterateSingleOrAll(this.frame, layer) {
 			for y := range common.IterateSingleOrAll(z, column) {
 				for cube := range common.IterateSingleOrAll(y, row) {
 					if !yield(cube) {
@@ -170,22 +169,36 @@ func (this *CubeGrid) updateCollision() {
 	}
 }
 
+func (this *CubeGrid) fillInVisibleCubes() {
+	for cube := range this.IterateCubesSelected() {
+		cube.Color = global.SelectedColor
+	}
+}
+
 func (this *CubeGrid) resetCubes() {
 	for cube := range this.IterateCubes() {
 		cube.Color = common.ColorOff
 	}
 }
 
+func (this *CubeGrid) overwriteCubes(frame common.CubeFrame) {
+	this.frame = common.DeepCloneLayout(frame)
+}
+
 // Blocking message loop
 func (this *CubeGrid) channelLoop() {
 	for {
-		switch (<-this.channel).(type) {
-		case models.ResetCubesMessage:
+		switch message := (<-this.channel).(type) {
+		case models.ResetMessage:
 			this.resetCubes()
-		case models.SaveCubeStateMessage:
+		case models.SaveMessage:
 			global.SendMessage(
 				constants.ServiceLedProcessor,
-				models.AddToBufferMessage{Layout: &this.cubes})
+				models.AddToBufferMessage{Frame: this.frame})
+		case models.FillVisibleCubesMessage:
+			this.fillInVisibleCubes()
+		case models.SetFrameMessage:
+			this.overwriteCubes(message.Frame)
 		}
 	}
 }

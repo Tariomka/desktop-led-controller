@@ -11,4 +11,4 @@ type Cube struct {
 	Color color.RGBA
 }
 
-type CubeLayout [][][]*Cube
+type CubeFrame [][][]*Cube

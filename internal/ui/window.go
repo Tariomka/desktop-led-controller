@@ -43,10 +43,7 @@ func NewWindow(configFuncs ...WindowConfigFunc) *Window {
 			config.CubeBaseSize,
 			config.CubeBaseSize,
 			config.CubeHeight,
-			raylib.NewVector3(1, 1, 1),
-			raylib.NewVector2(
-				float32(config.WindowWidth*3/4), // TODO: remove hardcode? defaultPanel() has the final part
-				float32(config.WindowHeight))),
+			raylib.NewVector3(1, 1, 1)),
 	}
 }
 
