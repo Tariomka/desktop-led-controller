@@ -1,12 +1,11 @@
 package main
 
-import "github.com/Tariomka/desktop-led-controller/internal/ui"
+import "github.com/Tariomka/desktop-led-controller/internal/runner"
 
 func main() {
-	if window := ui.NewWindow(); window != nil {
-		window.Start()
-		defer window.Stop()
-	}
+	runner := runner.NewRunner(runner.NewConfig())
+	runner.Start()
+	defer runner.Stop()
 }
 
 // import (
@@ -17,6 +16,7 @@ func main() {
 // )
 
 // func main() {
+// 	println("test")
 // 	go func() {
 // 		for i := range 10 {
 // 			client := tcp.NewClient()
@@ -25,5 +25,5 @@ func main() {
 // 		}
 // 	}()
 
-// 	time.Sleep(5 * time.Second)
+// 	time.Sleep(10 * time.Second)
 // }

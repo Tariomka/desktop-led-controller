@@ -1,67 +1,56 @@
 package ui
 
 import (
-	"image/color"
 	"iter"
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
+	"github.com/Tariomka/desktop-led-controller/internal/common/constants"
+	"github.com/Tariomka/desktop-led-controller/internal/global"
+	"github.com/Tariomka/desktop-led-controller/internal/models"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/component"
-	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
-type Cube struct {
-	pos   raylib.Vector3
-	color color.RGBA
-}
-
 type CubeGrid struct {
-	cubes [][][]*Cube
+	frame common.CubeFrame
 	size  raylib.Vector3
 
 	camera    *raylib.Camera
 	screen    raylib.Rectangle
 	ray       raylib.Ray
 	collision raylib.RayCollision
+
+	channel chan any
 }
 
-func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3, window raylib.Vector2) component.Renderer {
+func NewCubeGrid(
+	xCount, yCount, zCount uint8,
+	size raylib.Vector3) component.Renderer {
 	sizeX := 1 + size.X
 	sizeY := 1 + size.Y
 	sizeZ := 1 + size.Z
 
-	grid := make([][][]*Cube, zCount)
+	grid := make([][][]*common.Cube, zCount)
 	for z := range grid {
-		grid[z] = make([][]*Cube, yCount)
+		grid[z] = make([][]*common.Cube, yCount)
 		for y := range grid[z] {
-			grid[z][y] = make([]*Cube, xCount)
+			grid[z][y] = make([]*common.Cube, xCount)
 			for x := range grid[z][y] {
-				grid[z][y][x] = &Cube{
+				grid[z][y][x] = &common.Cube{
 					// this is not a mistake. 'y' and 'z' are switched
 					// to keep the same perspecive as on the physical cube
-					pos: raylib.NewVector3(
+					Pos: raylib.NewVector3(
 						sizeX*float32(x),
 						sizeZ*float32(z),
-						sizeY*float32(y),
-					),
-					color: common.ColorOff,
+						sizeY*float32(y)),
+					Color: common.ColorOff,
 				}
 			}
 		}
 	}
 
-	// for debugging purposes
-	// Delete this block when done
-	grid[7][0][1].color = common.ColorRed
-	grid[7][0][3].color = common.ColorGreen
-	grid[7][0][6].color = common.ColorBlue
-	grid[7][4][2].color = common.ColorCyan
-	grid[7][4][4].color = common.ColorYellow
-	grid[7][4][6].color = common.ColorViolet
-	grid[7][7][5].color = common.ColorWhite
-
-	return &CubeGrid{
-		cubes: grid,
+	cubeGrid := &CubeGrid{
+		frame: grid,
 		size:  size,
 		camera: &raylib.Camera{
 			Position:   raylib.NewVector3(30.0, 30.0, 30.0),
@@ -72,37 +61,50 @@ func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3, window rayli
 		},
 		screen: raylib.NewRectangle(
 			0, 0,
-			window.X,
-			window.Y),
+			float32(raylib.GetScreenWidth())/4*3,
+			float32(raylib.GetScreenHeight())),
+		channel: make(chan any, 1),
 	}
+
+	go cubeGrid.channelLoop()
+	global.RegisterMessageReceiver(
+		constants.UICubeGrid,
+		func(message any) { cubeGrid.channel <- message })
+
+	return cubeGrid
 }
 
-func (cg *CubeGrid) Update() {
+func (this *CubeGrid) Update() {
+	if raylib.IsWindowResized() {
+		this.screen.Width = float32(raylib.GetScreenWidth()) / 4 * 3
+		this.screen.Height = float32(raylib.GetScreenHeight())
+	}
+
 	if global.ShouldChangeColor && raylib.IsMouseButtonPressed(raylib.MouseLeftButton) {
-		cg.updateCollision()
+		this.updateCollision()
 	}
 
 	if raylib.IsMouseButtonDown(raylib.MouseLeftButton) &&
-		raylib.CheckCollisionPointRec(raylib.GetMousePosition(), cg.screen) {
-		raylib.UpdateCamera(cg.camera, raylib.CameraThirdPerson)
+		raylib.CheckCollisionPointRec(raylib.GetMousePosition(), this.screen) {
+		raylib.UpdateCamera(this.camera, raylib.CameraThirdPerson)
 	}
 }
 
-func (cg *CubeGrid) Render() {
+func (this *CubeGrid) Render() {
 	raylib.ClearBackground(raylib.DarkGray)
-	raylib.BeginMode3D(*cg.camera)
+	raylib.BeginMode3D(*this.camera)
 
-	for cube := range cg.IterateCubes() {
-		raylib.DrawCubeV(cube.pos, cg.size, cube.color)
-		raylib.DrawCubeWiresV(cube.pos, cg.size, raylib.Black)
+	for cube := range this.IterateCubesSelected() {
+		raylib.DrawCubeV(cube.Pos, this.size, cube.Color)
+		raylib.DrawCubeWiresV(cube.Pos, this.size, raylib.Black)
 	}
 
 	raylib.EndMode3D()
 }
 
-func (cg *CubeGrid) IterateCubes() iter.Seq[*Cube] {
-	return func(yield func(*Cube) bool) {
-		for _, z := range cg.cubes {
+func (this *CubeGrid) IterateCubes() iter.Seq[*common.Cube] {
+	return func(yield func(*common.Cube) bool) {
+		for _, z := range this.frame {
 			for _, y := range z {
 				for _, cube := range y {
 					if !yield(cube) {
@@ -114,21 +116,89 @@ func (cg *CubeGrid) IterateCubes() iter.Seq[*Cube] {
 	}
 }
 
-func (cg *CubeGrid) updateCollision() {
-	cg.ray = raylib.GetScreenToWorldRay(raylib.GetMousePosition(), *cg.camera)
+func (this *CubeGrid) IterateCubesExtended(row, column, layer int) iter.Seq[*common.Cube] {
+	return func(yield func(*common.Cube) bool) {
+		for z := range common.IterateSingleOrAll(this.frame, layer) {
+			for y := range common.IterateSingleOrAll(z, column) {
+				for cube := range common.IterateSingleOrAll(y, row) {
+					if !yield(cube) {
+						return
+					}
+				}
+			}
+		}
+	}
+}
+
+func (this *CubeGrid) IterateCubesSelected() iter.Seq[*common.Cube] {
+	if global.SelectedLayerState == global.All {
+		return this.IterateCubes()
+	}
+
+	xIndex, yIndex, zIndex := -1, -1, -1
+	if global.SelectedLayerState == global.Layer || global.SelectedLayerState == global.Precise {
+		zIndex = int(global.SelectedLayer)
+	}
+	if global.SelectedLayerState == global.Column || global.SelectedLayerState == global.Precise {
+		yIndex = int(global.SelectedColumn)
+	}
+	return this.IterateCubesExtended(xIndex, yIndex, zIndex)
+}
+
+func (this *CubeGrid) updateCollision() {
+	this.ray = raylib.GetScreenToWorldRay(raylib.GetMousePosition(), *this.camera)
 
 	// TODO: add single slice iterating when slicing in editor panel is created
-	for cube := range cg.IterateCubes() {
+	for cube := range this.IterateCubesSelected() {
 		// This hits multiple cubes, need to think on how to handle only a single collision
-		cg.collision = raylib.GetRayCollisionBox(
-			cg.ray,
+		this.collision = raylib.GetRayCollisionBox(
+			this.ray,
 			raylib.NewBoundingBox(
-				raylib.NewVector3(cube.pos.X-cg.size.X/2, cube.pos.Y-cg.size.Y/2, cube.pos.Z-cg.size.Z/2),
-				raylib.NewVector3(cube.pos.X+cg.size.X/2, cube.pos.Y+cg.size.Y/2, cube.pos.Z+cg.size.Z/2),
-			))
+				raylib.NewVector3(
+					cube.Pos.X-this.size.X/2,
+					cube.Pos.Y-this.size.Y/2,
+					cube.Pos.Z-this.size.Z/2),
+				raylib.NewVector3(
+					cube.Pos.X+this.size.X/2,
+					cube.Pos.Y+this.size.Y/2,
+					cube.Pos.Z+this.size.Z/2)))
 
-		if cg.collision.Hit {
-			cube.color = global.SelectedColor
+		if this.collision.Hit {
+			cube.Color = global.SelectedColor
+		}
+	}
+}
+
+func (this *CubeGrid) fillInVisibleCubes() {
+	for cube := range this.IterateCubesSelected() {
+		cube.Color = global.SelectedColor
+	}
+}
+
+func (this *CubeGrid) resetCubes() {
+	for cube := range this.IterateCubes() {
+		cube.Color = common.ColorOff
+	}
+}
+
+func (this *CubeGrid) overwriteCubes(frame common.CubeFrame) {
+	this.frame = common.DeepCloneLayout(frame)
+}
+
+// Blocking message loop
+func (this *CubeGrid) channelLoop() {
+	for {
+		switch message := (<-this.channel).(type) {
+		case models.ResetMessage:
+			this.resetCubes()
+		case models.SaveMessage:
+			global.SendMessage(
+				constants.ServiceLedProcessor,
+				models.AddToBufferMessage{Frame: this.frame})
+		case models.FillVisibleCubesMessage:
+			this.fillInVisibleCubes()
+		case models.SetFrameMessage:
+			this.overwriteCubes(message.Frame)
 		}
 	}
 }

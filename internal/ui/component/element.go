@@ -1,7 +1,7 @@
 package component
 
 import (
-	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
+	"github.com/Tariomka/desktop-led-controller/internal/global"
 	"github.com/gen2brain/raylib-go/raygui"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -12,40 +12,48 @@ type ExitDialog struct {
 	screenWidth, screenHeight int
 }
 
-func (ed *ExitDialog) Update() {
-	ed.screenWidth = raylib.GetScreenWidth()
-	ed.screenHeight = raylib.GetScreenHeight()
+func (this *ExitDialog) Update() {
+	this.screenWidth = raylib.GetScreenWidth()
+	this.screenHeight = raylib.GetScreenHeight()
 
 	if raylib.IsKeyPressed(raylib.KeyEscape) {
-		ed.show = !ed.show
+		this.show = !this.show
 	}
 }
 
-func (ed *ExitDialog) Render() {
-	if ed.show {
-		raylib.DrawRectangle(0, 0, int32(ed.screenWidth), int32(ed.screenHeight), raylib.Fade(raylib.Black, 0.7))
+func (this *ExitDialog) Render() {
+	if !this.show {
+		return
+	}
 
-		pos := raylib.NewVector2((float32(ed.screenWidth)-ed.width)/2, (float32(ed.screenHeight)-ed.height)/2)
-		result := raygui.MessageBox(
-			raylib.NewRectangle(pos.X, pos.Y, ed.width, ed.height),
-			raygui.IconText(raygui.ICON_EXIT, "Close Window"),
-			"Do you really want to exit?",
-			"Yes;No")
+	raylib.DrawRectangle(
+		0, 0,
+		int32(this.screenWidth),
+		int32(this.screenHeight),
+		raylib.Fade(raylib.Black, 0.7))
 
-		if raylib.IsKeyPressed(raylib.KeyEnter) {
-			result = 1
-		}
+	pos := raylib.NewVector2(
+		(float32(this.screenWidth)-this.width)/2,
+		(float32(this.screenHeight)-this.height)/2)
+	result := raygui.MessageBox(
+		raylib.NewRectangle(pos.X, pos.Y, this.width, this.height),
+		raygui.IconText(raygui.ICON_EXIT, "Close Window"),
+		"Do you really want to exit?",
+		"Yes;No")
 
-		if result == 0 || result == 2 {
-			ed.show = false
-		} else if result == 1 {
-			global.WindowShouldClose = true
-		}
+	if raylib.IsKeyPressed(raylib.KeyEnter) {
+		result = 1
+	}
+
+	if result == 0 || result == 2 {
+		this.show = false
+	} else if result == 1 {
+		global.WindowShouldClose = true
 	}
 }
 
-type MessageListView struct{}
+// type MessageListView struct{}
 
-func (mlv *MessageListView) Update() {}
+// func (mlv *MessageListView) Update() {}
 
-func (mlv *MessageListView) Render() {}
+// func (mlv *MessageListView) Render() {}

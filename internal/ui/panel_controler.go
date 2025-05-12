@@ -16,7 +16,7 @@ type PanelControler struct {
 	dialogs []component.Renderer
 }
 
-// Creates controller for all panels shown on screen.
+// NewPanelControler creates controller for all panels shown on screen.
 //
 // This controller should be created only after raylib window is initialized
 // as panels could possibly use unitialized window parameters.

@@ -3,7 +3,6 @@ package common
 import "errors"
 
 var (
-	ErrOutOfBounds        = errors.New("index out of bounds")
-	ErrNotEnoughData      = errors.New("not enough data")
-	ErrUnsupportedVersion = errors.New("unsupported version")
+	ErrOutsideBasePath = errors.New("navigating outside base path not allowed")
+	ErrNotImplemented  = errors.New("not implemented")
 )

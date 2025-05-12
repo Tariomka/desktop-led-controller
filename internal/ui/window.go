@@ -1,8 +1,8 @@
 package ui
 
 import (
+	"github.com/Tariomka/desktop-led-controller/internal/global"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/component"
-	"github.com/Tariomka/desktop-led-controller/internal/ui/global"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -28,6 +28,8 @@ type Window struct {
 
 	hud      component.Renderer
 	cubeGrid component.Renderer
+
+	config WindowConfig
 }
 
 func NewWindow(configFuncs ...WindowConfigFunc) *Window {
@@ -39,44 +41,42 @@ func NewWindow(configFuncs ...WindowConfigFunc) *Window {
 	return &Window{
 		width:  config.WindowWidth,
 		height: config.WindowHeight,
-
-		cubeGrid: NewCubeGrid(
-			config.CubeBaseSize,
-			config.CubeBaseSize,
-			config.CubeHeight,
-			raylib.NewVector3(1, 1, 1),
-			raylib.NewVector2(
-				float32(config.WindowWidth*3/4), // TODO: remove hardcode? defaultPanel() has the final part
-				float32(config.WindowHeight))),
+		config: config,
 	}
 }
 
-func (w *Window) Start() {
+func (this *Window) Start() {
 	raylib.SetConfigFlags(raylib.FlagWindowResizable)
-	raylib.InitWindow(w.width, w.height, "Led Cube Controller")
+	raylib.InitWindow(this.width, this.height, "Led Cube Controller")
 	raylib.SetTargetFPS(60)
 
 	style.LoadStyle()
-	w.hud = NewPanelControler()
-
-	w.renderLoop()
+	this.hud = NewPanelControler()
+	this.cubeGrid = NewCubeGrid(
+		this.config.CubeBaseSize,
+		this.config.CubeBaseSize,
+		this.config.CubeHeight,
+		raylib.NewVector3(1, 1, 1))
 }
 
-func (w *Window) Stop() {
+func (_ *Window) Stop() {
 	raylib.CloseWindow()
 }
 
-func (w *Window) renderLoop() {
+// Render is a blocking infinite loop
+func (this *Window) Render() {
 	for !global.WindowShouldClose {
 		global.WindowShouldClose = raylib.WindowShouldClose()
 
-		w.cubeGrid.Update()
-		w.hud.Update()
+		// Update
+		this.cubeGrid.Update()
+		this.hud.Update()
 
+		// Render
 		raylib.BeginDrawing()
 
-		w.cubeGrid.Render()
-		w.hud.Render()
+		this.cubeGrid.Render()
+		this.hud.Render()
 
 		raylib.EndDrawing()
 	}

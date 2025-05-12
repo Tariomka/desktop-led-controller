@@ -5,11 +5,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Package",
+            "name": "Debug Project",
             "type": "go",
             "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/main.go",
+            "mode": "exec",
+            // "host": "127.0.0.1",
+            // "port": 2345,
+            "program": "${workspaceFolder}/bin/desktop_app",
+            "showLog": false,
+            "preLaunchTask": "Build w/ Make"
         }
     ]
 }
