@@ -8,6 +8,11 @@ import (
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
+const (
+	PanelWidthCoeficient    = float32(1) / 4
+	RendererWidthCoeficient = float32(3) / 4
+)
+
 //go:embed style.rgs
 var style []byte
 

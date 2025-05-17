@@ -2,9 +2,12 @@ package component
 
 import (
 	"fmt"
+	"image/color"
+	"strings"
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
 	"github.com/Tariomka/desktop-led-controller/internal/common/constants"
+	"github.com/Tariomka/desktop-led-controller/internal/data"
 	"github.com/Tariomka/desktop-led-controller/internal/global"
 	"github.com/Tariomka/desktop-led-controller/internal/models"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
@@ -13,21 +16,47 @@ import (
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
+func getRGBNamedColors() []data.Tuple[string, color.RGBA] {
+	return []data.Tuple[string, color.RGBA]{
+		data.NewTuple("OFF", common.ColorOff),
+		data.NewTuple("GREEN", common.ColorGreen),
+		data.NewTuple("BLUE", common.ColorBlue),
+		data.NewTuple("RED", common.ColorRed),
+		data.NewTuple("CYAN", common.ColorCyan),
+		data.NewTuple("YELLOW", common.ColorYellow),
+		data.NewTuple("VIOLET", common.ColorViolet),
+		data.NewTuple("WHITE", common.ColorWhite),
+	}
+}
+
 type EditPanel struct {
 	Panel
 	padding    raylib.Vector2
 	itemBounds raylib.Rectangle
 
-	colorSelector bool
-	activeColor   int32
-	colorChanged  bool
+	colorData    *data.DropdownData[color.RGBA]
+	colorChanged bool
+
+	lightShowData *data.DropdownData[string]
+
+	channel chan any
 }
 
 func newEditPanel(base Panel) *EditPanel {
-	return &EditPanel{
-		Panel:   base,
-		padding: raylib.NewVector2(10, 10),
+	// TODO: make it more dynamic
+	editPanel := &EditPanel{
+		Panel:         base,
+		padding:       raylib.NewVector2(10, 10),
+		colorData:     data.NewDropdownDataWithValues(getRGBNamedColors()...),
+		lightShowData: data.NewDropdownData[string](),
+		channel:       make(chan any, 1),
 	}
+
+	go editPanel.channelLoop()
+	global.RegisterMessageReceiver(
+		constants.UIEditPanel,
+		func(message any) { editPanel.channel <- message })
+	return editPanel
 }
 
 func (this *EditPanel) Update() {
@@ -41,24 +70,8 @@ func (this *EditPanel) Update() {
 		style.TextSize)
 
 	if this.colorChanged {
-		switch this.activeColor {
-		case 1:
-			global.SelectedColor = common.ColorGreen
-		case 2:
-			global.SelectedColor = common.ColorBlue
-		case 3:
-			global.SelectedColor = common.ColorRed
-		case 4:
-			global.SelectedColor = common.ColorCyan
-		case 5:
-			global.SelectedColor = common.ColorYellow
-		case 6:
-			global.SelectedColor = common.ColorViolet
-		case 7:
-			global.SelectedColor = common.ColorWhite
-		default:
-			global.SelectedColor = common.ColorOff
-		}
+		colorValue, _ := this.colorData.GetSelectedValue()
+		global.SelectedColor = colorValue
 		this.colorChanged = false
 	}
 }
@@ -149,10 +162,10 @@ func (this *EditPanel) renderColorSelection() {
 
 	if raygui.DropdownBox(
 		this.itemBounds,
-		"OFF;GREEN;BLUE;RED;CYAN;YELLOW;VIOLET;WHITE", // TODO: move to a config, to be able to switch between mono and RGB
-		&this.activeColor,
-		this.colorSelector) {
-		this.colorSelector = !this.colorSelector
+		this.colorData.GetText(),
+		this.colorData.GetIndex(),
+		this.colorData.IsActive()) {
+		this.colorData.SwitchActive()
 		this.colorChanged = true
 	}
 	this.itemBounds.Y += this.itemBounds.Height + style.BorderWidth + this.padding.Y
@@ -178,11 +191,10 @@ func (this *EditPanel) renderFramePreview() {
 }
 
 func (this *EditPanel) renderFrameControl() {
-	// TODO: PREVIOUS and NEXT FRAME
-	buttonWidth := (this.Width - this.padding.X*4) / 2
+	buttonWidth := (this.Width - this.padding.X*3) / 2
 
-	buttonBounds := raylib.NewRectangle(
-		this.X+this.padding.X*1.5,
+	localItemBounds := raylib.NewRectangle(
+		this.X+this.padding.X,
 		this.itemBounds.Y,
 		buttonWidth,
 		style.TextSize+style.BorderWidth*2)
@@ -190,18 +202,18 @@ func (this *EditPanel) renderFrameControl() {
 	if global.SelectedFrame <= 0 {
 		raygui.Disable()
 	}
-	if raygui.Button(buttonBounds, "Previous Frame") {
+	if raygui.Button(localItemBounds, "Previous Frame") {
 		global.SendMessage(
 			constants.ServiceLedProcessor,
 			models.LoadFrameMessage{Index: global.SelectedFrame - 1})
 	}
 	raygui.Enable()
 
-	buttonBounds.X += buttonWidth + this.padding.X
+	localItemBounds.X += localItemBounds.Width + this.padding.X
 	if global.SelectedFrame >= global.TotalFrameCount {
 		raygui.Disable()
 	}
-	if raygui.Button(buttonBounds, "Next Frame") {
+	if raygui.Button(localItemBounds, "Next Frame") {
 		global.SendMessage(
 			constants.ServiceLedProcessor,
 			models.LoadFrameMessage{Index: global.SelectedFrame + 1})
@@ -209,27 +221,100 @@ func (this *EditPanel) renderFrameControl() {
 	raygui.Enable()
 	this.itemBounds.Y += this.itemBounds.Height + style.BorderWidth*3 + this.padding.Y
 
+	// --- New line ---
 	buttonWidth = (this.Width - this.padding.X*4) / 3
-	buttonBounds = raylib.NewRectangle(
+	localItemBounds = raylib.NewRectangle(
 		this.X+this.padding.X,
 		this.itemBounds.Y,
 		buttonWidth,
-		buttonBounds.Height)
-	if raygui.Button(buttonBounds, "Reset") {
+		localItemBounds.Height)
+	if raygui.Button(localItemBounds, "Reset") {
 		global.SendMessage(constants.UICubeGrid, models.ResetMessage{})
 		global.SendMessage(constants.ServiceLedProcessor, models.ResetMessage{})
 	}
 
-	buttonBounds.X += buttonWidth + this.padding.X
-	if raygui.Button(buttonBounds, "New Frame") {
-		global.SendMessage(constants.UICubeGrid, models.SaveMessage{})
+	localItemBounds.X += localItemBounds.Width + this.padding.X
+	if raygui.Button(localItemBounds, "Remove Frame") {
+		// TODO: add
 	}
 
-	buttonBounds.X += buttonWidth + this.padding.X
-	if raygui.Button(buttonBounds, "Save") {
+	localItemBounds.X += localItemBounds.Width + this.padding.X
+	if raygui.Button(localItemBounds, "Save Frame") {
+		global.SendMessage(constants.UICubeGrid, models.SaveMessage{})
+	}
+	this.itemBounds.Y += this.itemBounds.Height + style.BorderWidth*3 + this.padding.Y
+
+	// --- New line ---
+	buttonWidth = (this.Width - this.padding.X*3) / 2
+	localItemBounds = raylib.NewRectangle(
+		this.X+this.padding.X,
+		this.itemBounds.Y,
+		buttonWidth,
+		localItemBounds.Height)
+	if raygui.Button(localItemBounds, "Fetch Light Shows") {
+		global.SendMessage(constants.ServiceLedProcessor, models.FetchMessage{})
+	}
+	this.itemBounds.Y += this.itemBounds.Height + style.BorderWidth*3 + this.padding.Y
+
+	// --- New line ---
+	selectionWidth := (this.Width - this.padding.X*3) / 3 * 2
+	localItemBounds = raylib.NewRectangle(
+		this.X+this.padding.X,
+		this.itemBounds.Y,
+		selectionWidth,
+		localItemBounds.Height)
+
+	if this.lightShowData.IsEmpty() {
+		raygui.Disable()
+	}
+	if raygui.DropdownBox(
+		localItemBounds,
+		this.lightShowData.GetText(),
+		this.lightShowData.GetIndex(),
+		this.lightShowData.IsActive()) {
+		this.lightShowData.SwitchActive()
+	}
+
+	buttonWidth = (this.Width - this.padding.X*4) / 3
+	localItemBounds.X += localItemBounds.Width + this.padding.X
+	localItemBounds.Width = buttonWidth
+	if this.lightShowData.IsEmpty() || !this.lightShowData.IsSelected() {
+		raygui.Disable()
+	}
+	if raygui.Button(localItemBounds, "Load") {
+		lightShowName, _ := this.lightShowData.GetSelectedValue()
+		global.SendMessage(constants.ServiceLedProcessor, models.LoadMessage{Name: lightShowName})
+	}
+	raygui.Enable()
+	this.itemBounds.Y += this.itemBounds.Height + style.BorderWidth*3 + this.padding.Y
+
+	// --- New line ---
+	localItemBounds = raylib.NewRectangle(
+		this.X+this.padding.X,
+		this.itemBounds.Y,
+		selectionWidth,
+		localItemBounds.Height)
+
+	localItemBounds.X += localItemBounds.Width + this.padding.X
+	localItemBounds.Width = buttonWidth
+	if raygui.Button(localItemBounds, "Save") {
 		global.SendMessage(constants.ServiceLedProcessor, models.SaveMessage{})
 	}
 	this.itemBounds.Y += this.itemBounds.Height + style.BorderWidth*3 + this.padding.Y
 
 	this.renderSegmentLine()
+}
+
+// Blocking message loop
+func (this *EditPanel) channelLoop() {
+	for {
+		switch message := (<-this.channel).(type) {
+		case models.SetLightShowsMessage:
+			var pairs []data.Tuple[string, string]
+			for _, name := range message.Names {
+				pairs = append(pairs, data.NewTuple(strings.ToUpper(name), name))
+			}
+			this.lightShowData.SetData(pairs...)
+		}
+	}
 }

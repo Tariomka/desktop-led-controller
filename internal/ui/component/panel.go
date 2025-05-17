@@ -1,6 +1,7 @@
 package component
 
 import (
+	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
 	"github.com/gen2brain/raylib-go/raygui"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
@@ -13,7 +14,7 @@ type Panel struct{ raylib.Rectangle }
 //	import rl "github.com/gen2brain/raylib-go/raylib"
 //	rl.InitWindow(...)
 func defaultPanel() Panel {
-	panelWidth := float32(raylib.GetScreenWidth()) / 4
+	panelWidth := float32(raylib.GetScreenWidth()) * style.PanelWidthCoeficient
 	return Panel{
 		Rectangle: raylib.NewRectangle(
 			float32(raylib.GetScreenWidth())-panelWidth,
@@ -31,7 +32,7 @@ func (p *Panel) resize(additionalResizes ...func()) {
 	}
 
 	previousPosX, previousPosY := p.X, p.Y
-	panelWidth := float32(raylib.GetScreenWidth()) / 4
+	panelWidth := float32(raylib.GetScreenWidth()) * style.PanelWidthCoeficient
 
 	if previousPosX > 0 {
 		p.Width = panelWidth

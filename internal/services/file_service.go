@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"os"
@@ -13,9 +12,11 @@ import (
 
 const (
 	bufferSize       = 4096
+	maxFileSize      = 100_000_000 // 100MB
 	backupFileSuffix = "_bak"
 )
 
+// FileService requires relative paths for actions to work correctly
 type FileService struct {
 	logger *slog.Logger
 }
@@ -27,7 +28,7 @@ func NewFileService(logger *slog.Logger) *FileService {
 }
 
 func (this *FileService) AppendToFile(filePath string, payloads ...[]byte) error {
-	file, err := getOrCreateFile(filePath)
+	file, err := this.getOrCreateFile(filePath)
 	if err != nil {
 		return err
 	}
@@ -43,9 +44,8 @@ func (this *FileService) AppendToFile(filePath string, payloads ...[]byte) error
 	return nil
 }
 
-func (this *FileService) ReadFileContent(filePath string) []byte {
-	filePath = filepath.Join(lightShowDir, filePath)
-	file, err := getOrCreateFile(filePath)
+func (this *FileService) PeakFileContent(filePath string, length uint32) []byte {
+	file, err := this.getOrCreateFile(filePath)
 	if err != nil {
 		this.logger.Error(
 			"[FILE_SERVICE] file fetching failed",
@@ -55,31 +55,60 @@ func (this *FileService) ReadFileContent(filePath string) []byte {
 	}
 
 	defer file.Close()
-	buffer := make([]byte, bufferSize) // TODO: keep reading?
-	n, err := file.Read(buffer)
-	if err != nil {
-		if errors.Is(err, io.EOF) {
-			this.logger.Debug("[FILE_SERVICE] end of file")
-			return []byte{}
-		}
 
+	info, err := file.Stat()
+	if err != nil {
 		this.logger.Error(
-			"[FILE_SERVICE] file reading failed",
+			"[FILE_SERVICE] failed to read file information",
 			"relative file path", filePath,
 			"error", err)
 		return []byte{}
 	}
 
-	return buffer[:n]
+	if info.Size() > maxFileSize {
+		this.logger.Warn(
+			"[FILE_SERVICE] file exceeds maximum allowed size - file will not be read fully",
+			"relative file path", filePath,
+			"maximum file size (MB)", maxFileSize/1_000_000)
+	}
+	if info.Size() < int64(length) {
+		length = uint32(info.Size()) + 1 // Additional byte to trigger end of file
+	}
+
+	content := make([]byte, 0, length+1)
+	for {
+		n, err := file.Read(content[len(content):cap(content)])
+		content = content[:len(content)+n]
+		if err != nil {
+			if err == io.EOF {
+				this.logger.Debug("[FILE_SERVICE] end of file")
+			} else {
+				this.logger.Error(
+					"[FILE_SERVICE] failed to read file content",
+					"relative file path", filePath,
+					"error", err)
+			}
+			return content
+		}
+
+		// Short circuit when reading before end of file
+		if n == 0 {
+			return content
+		}
+	}
+}
+
+func (this *FileService) ReadFileContent(filePath string) []byte {
+	return this.PeakFileContent(filePath, 1_000_000) // For now only ready up to 1MB of content
 }
 
 func (this *FileService) SaveFile(filePath string, payloads ...[]byte) error {
-	err := copyFile(filePath, filePath+backupFileSuffix)
+	err := this.copyFile(filePath, filePath+backupFileSuffix)
 	if err != nil {
 		return err
 	}
 
-	err = deleteFile(filePath)
+	err = this.deleteFile(filePath)
 	if err != nil {
 		return err
 	}
@@ -87,12 +116,12 @@ func (this *FileService) SaveFile(filePath string, payloads ...[]byte) error {
 	err = this.AppendToFile(filePath, payloads...)
 	if err != nil {
 		this.logger.Warn("[FILE_SERVICE] failed to save new file, restoring backup")
-		if innerErr := deleteFile(filePath); innerErr != nil {
+		if innerErr := this.deleteFile(filePath); innerErr != nil {
 			this.logger.Error(
 				"[FILE_SERVICE] error while deleting malformed file",
 				"inner error", innerErr)
 		}
-		if innerErr := copyFile(filePath+backupFileSuffix, filePath); innerErr != nil {
+		if innerErr := this.copyFile(filePath+backupFileSuffix, filePath); innerErr != nil {
 			this.logger.Error(
 				"[FILE_SERVICE] failed to restore backed up file",
 				"backed up file path", filePath+backupFileSuffix,
@@ -101,21 +130,28 @@ func (this *FileService) SaveFile(filePath string, payloads ...[]byte) error {
 		return err
 	}
 
-	deleteFile(filePath + backupFileSuffix) // intentionally ignored error
+	this.deleteFile(filePath + backupFileSuffix) // intentionally ignored error
 	return nil
 }
 
-func (this *FileService) FindFiles(globPath string) {
-	panic(common.ErrNotImplemented)
+func (this *FileService) FindFiles(globPath string) []string {
+	files, err := this.getFiles(globPath)
+	if err != nil {
+		this.logger.Error(
+			"[FILE_SERVICE] failed to find files",
+			"pattern", globPath,
+			"error", err)
+	}
+	return files
 }
 
-func copyFile(sourcePath, destinationPath string) error {
-	source, err := getOrCreateFile(sourcePath)
+func (this *FileService) copyFile(sourcePath, destinationPath string) error {
+	source, err := this.getOrCreateFile(sourcePath)
 	if err != nil {
 		return err
 	}
 
-	destination, err := getOrCreateFile(destinationPath)
+	destination, err := this.getOrCreateFile(destinationPath)
 	if err != nil {
 		return err
 	}
@@ -139,26 +175,31 @@ func copyFile(sourcePath, destinationPath string) error {
 	return nil
 }
 
-func createFolderIfNotExists(directory string) (fullPath string, err error) {
+func (this *FileService) createFolderIfNotExists(directory string) (fullPath string, err error) {
 	fullPath, err = common.GetFullPathFromRelativePath(directory)
 	if err != nil {
-		// TODO: remove logging here as it is redundant?
-		fmt.Printf("[ERROR] failed to read full path: %s\n", err)
+		this.logger.Error(
+			"[FILE_SERVICE] failed to read full path",
+			"relative path", directory,
+			"error", err)
 		return "", err
 	}
 
 	err = os.MkdirAll(fullPath, secureDirMode)
 	if err != nil {
-		fmt.Printf("[ERROR] failed to make directory: %s\n", err)
+		this.logger.Error(
+			"[FILE_SERVICE] failed to make directory",
+			"absolute path", fullPath,
+			"error", err)
 		return "", err
 	}
 
-	return fullPath, err
+	return fullPath, nil
 }
 
-func getOrCreateFile(filePath string) (*os.File, error) {
+func (this *FileService) getOrCreateFile(filePath string) (*os.File, error) {
 	relativeDir := common.GetRelativeDirFromRelativePath(filePath)
-	_, err := createFolderIfNotExists(relativeDir)
+	_, err := this.createFolderIfNotExists(relativeDir)
 	if err != nil {
 		return nil, err
 	}
@@ -171,11 +212,22 @@ func getOrCreateFile(filePath string) (*os.File, error) {
 	return os.OpenFile(fullPath, os.O_APPEND|os.O_CREATE|os.O_RDWR, secureFileMode)
 }
 
-func deleteFile(filePath string) error {
+func (this *FileService) deleteFile(filePath string) error {
 	fullPath, err := common.GetFullPathFromRelativePath(filePath)
 	if err != nil {
 		return err
 	}
 
 	return os.Remove(fullPath)
+}
+
+func (this *FileService) getFiles(globPath string) ([]string, error) {
+	var files []string
+	fullPath, err := common.GetFullPathFromRelativePath(globPath)
+	if err != nil {
+		return files, err
+	}
+
+	files, err = filepath.Glob(fullPath)
+	return files, err
 }

@@ -4,6 +4,7 @@ import (
 	"image/color"
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
+	"github.com/Tariomka/desktop-led-controller/internal/data"
 )
 
 type LayerState int32
@@ -17,7 +18,7 @@ const (
 
 // Globally accesable state
 var (
-	messenger *common.Messenger = common.NewMessanger()
+	messenger *data.Messenger = data.NewMessanger()
 
 	ShouldChangeColor bool
 	SelectedColor     color.RGBA = common.ColorOff
@@ -32,7 +33,7 @@ var (
 	WindowShouldClose bool
 )
 
-func RegisterMessageReceiver(key string, receiver common.MessageReceiver) {
+func RegisterMessageReceiver(key string, receiver data.MessageReceiver) {
 	messenger.RegisterReceiver(key, receiver)
 }
 

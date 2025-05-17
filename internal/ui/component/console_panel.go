@@ -3,8 +3,8 @@ package component
 import (
 	"fmt"
 
-	"github.com/Tariomka/desktop-led-controller/internal/common"
 	"github.com/Tariomka/desktop-led-controller/internal/common/constants"
+	"github.com/Tariomka/desktop-led-controller/internal/data"
 	"github.com/Tariomka/desktop-led-controller/internal/global"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/utils"
@@ -16,7 +16,7 @@ type ConsolePanel struct {
 	Panel
 	messageBounds raylib.Rectangle
 
-	messages         *common.RingBuffer[string]
+	messages         *data.RingBuffer[string]
 	visibleLineCount int
 
 	currentScrollIndex  int
@@ -31,7 +31,7 @@ type ConsolePanel struct {
 func newConsolePanel(base Panel) *ConsolePanel {
 	consolePanel := &ConsolePanel{
 		Panel:       base,
-		messages:    common.NewRingBuffer[string](100),
+		messages:    data.NewRingBuffer[string](100),
 		itemFocused: -1,
 		channel:     make(chan string),
 	}
