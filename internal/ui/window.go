@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"github.com/Tariomka/desktop-led-controller/internal/data"
 	"github.com/Tariomka/desktop-led-controller/internal/global"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/component"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
@@ -56,7 +57,7 @@ func (this *Window) Start() {
 		this.config.CubeBaseSize,
 		this.config.CubeBaseSize,
 		this.config.CubeHeight,
-		raylib.NewVector3(1, 1, 1))
+		data.DefaultCubeSize)
 }
 
 func (_ *Window) Stop() {

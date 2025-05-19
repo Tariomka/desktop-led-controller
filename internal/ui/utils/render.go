@@ -43,6 +43,14 @@ func RenderRectangle(rec raylib.Rectangle, borderWidth float32, borderColor, fil
 	}
 }
 
+func RenderWithCondition(render func(), disableCondition bool) {
+	if disableCondition {
+		raygui.Disable()
+	}
+	render()
+	raygui.Enable()
+}
+
 func renderStringEx(
 	text string,
 	textBounds raylib.Rectangle,

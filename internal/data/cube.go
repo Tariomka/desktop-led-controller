@@ -5,14 +5,11 @@ import (
 	"iter"
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
+	"github.com/Tariomka/led-common-lib/pkg/led"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
-type CubeIndex struct {
-	X uint8 // Row
-	Y uint8 // Column
-	Z uint8 // Layer
-}
+var DefaultCubeSize = raylib.NewVector3(1, 1, 1)
 
 type Cube struct {
 	Pos   raylib.Vector3
@@ -20,6 +17,10 @@ type Cube struct {
 }
 
 type CubeFrame [][][]*Cube
+
+func NewCubeFrameWithDefaultSize(xCount, yCount, zCount uint8) CubeFrame {
+	return NewCubeFrame(xCount, yCount, zCount, DefaultCubeSize)
+}
 
 func NewCubeFrame(xCount, yCount, zCount uint8, size raylib.Vector3) CubeFrame {
 	sizeX := 1 + size.X
@@ -76,12 +77,12 @@ func (this CubeFrame) IterateSingleOrAll(row, column, layer int) iter.Seq[*Cube]
 	}
 }
 
-func (this CubeFrame) IterateWithIndex() iter.Seq2[CubeIndex, *Cube] {
-	return func(yield func(CubeIndex, *Cube) bool) {
+func (this CubeFrame) IterateWithIndex() iter.Seq2[led.Index, *Cube] {
+	return func(yield func(led.Index, *Cube) bool) {
 		for layer, z := range this {
 			for column, y := range z {
 				for row, cube := range y {
-					if !yield(CubeIndex{X: uint8(row), Y: uint8(column), Z: uint8(layer)}, cube) {
+					if !yield(led.Index{X: uint8(row), Y: uint8(column), Z: uint8(layer)}, cube) {
 						return
 					}
 				}

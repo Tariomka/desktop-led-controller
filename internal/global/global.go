@@ -16,9 +16,20 @@ const (
 	Precise
 )
 
+type ConnectionState int
+
+const (
+	Disconnect ConnectionState = iota
+	Connecting
+	Connected
+	Disconnecting
+)
+
 // Globally accesable state
 var (
 	messenger *data.Messenger = data.NewMessanger()
+
+	ConnectionStatus ConnectionState
 
 	ShouldChangeColor bool
 	SelectedColor     color.RGBA = common.ColorOff

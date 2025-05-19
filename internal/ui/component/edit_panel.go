@@ -43,11 +43,10 @@ type EditPanel struct {
 }
 
 func newEditPanel(base Panel) *EditPanel {
-	// TODO: make it more dynamic
 	editPanel := &EditPanel{
 		Panel:         base,
 		padding:       raylib.NewVector2(10, 10),
-		colorData:     data.NewDropdownDataWithValues(getRGBNamedColors()...),
+		colorData:     data.NewDropdownDataWithValues(getRGBNamedColors()...), // TODO: make it more dynamic
 		lightShowData: data.NewDropdownData[string](),
 		channel:       make(chan any, 1),
 	}
@@ -87,6 +86,7 @@ func (this *EditPanel) Render() {
 	this.renderColorSelection()
 	this.renderFramePreview()
 	this.renderFrameControl()
+	this.renderNetworkControl()
 }
 
 func (this *EditPanel) renderSegmentLine() {
@@ -106,28 +106,28 @@ func (this *EditPanel) renderLayerSelection() {
 		int32(global.SelectedLayerState)))
 	this.itemBounds.Y += this.itemBounds.Height + this.padding.Y
 
-	if global.SelectedLayerState != global.Layer && global.SelectedLayerState != global.Precise {
-		raygui.Disable()
-	}
-	global.SelectedLayer = uint8(raygui.Slider(
-		this.itemBounds,
-		"Layer",
-		fmt.Sprintf("%d", global.SelectedLayer+1),
-		float32(global.SelectedLayer),
-		0, 7)) // TODO: need to get cube size instead of hardcode
-	raygui.Enable()
+	utils.RenderWithCondition(
+		func() {
+			global.SelectedLayer = uint8(raygui.Slider(
+				this.itemBounds,
+				"Layer",
+				fmt.Sprintf("%d", global.SelectedLayer+1),
+				float32(global.SelectedLayer),
+				0, 7)) // TODO: need to get cube size instead of hardcode
+		},
+		global.SelectedLayerState != global.Layer && global.SelectedLayerState != global.Precise)
 	this.itemBounds.Y += this.itemBounds.Height + this.padding.Y
 
-	if global.SelectedLayerState != global.Column && global.SelectedLayerState != global.Precise {
-		raygui.Disable()
-	}
-	global.SelectedColumn = uint8(raygui.Slider(
-		this.itemBounds,
-		"Column",
-		fmt.Sprintf("%d", global.SelectedColumn+1),
-		float32(global.SelectedColumn),
-		0, 7))
-	raygui.Enable()
+	utils.RenderWithCondition(
+		func() {
+			global.SelectedColumn = uint8(raygui.Slider(
+				this.itemBounds,
+				"Column",
+				fmt.Sprintf("%d", global.SelectedColumn+1),
+				float32(global.SelectedColumn),
+				0, 7))
+		},
+		global.SelectedLayerState != global.Column && global.SelectedLayerState != global.Precise)
 	this.itemBounds.Y += this.itemBounds.Height + style.BorderWidth + this.padding.Y
 
 	this.renderSegmentLine()
@@ -151,13 +151,13 @@ func (this *EditPanel) renderColorSelection() {
 		toggleBounds.Y,
 		buttonWidth,
 		toggleBounds.Height)
-	if !global.ShouldChangeColor {
-		raygui.Disable()
-	}
-	if raygui.Button(fillButtonBounds, "Fill-in") {
-		global.SendMessage(constants.UICubeGrid, models.FillVisibleCubesMessage{})
-	}
-	raygui.Enable()
+	utils.RenderWithCondition(
+		func() {
+			if raygui.Button(fillButtonBounds, "Fill-in") {
+				global.SendMessage(constants.UICubeGrid, models.FillVisibleCubesMessage{})
+			}
+		},
+		!global.ShouldChangeColor)
 	this.itemBounds.Y += this.itemBounds.Height + style.BorderWidth*3 + this.padding.Y
 
 	if raygui.DropdownBox(
@@ -183,42 +183,41 @@ func (this *EditPanel) renderFramePreview() {
 			global.TotalFrameCount+1),
 		utils.GetTextBounds(this.itemBounds),
 		style.TextColorNormal)
-	this.itemBounds.Y += (this.itemBounds.Height + style.BorderWidth + this.padding.Y) * 2
-
 	this.itemBounds.Y += this.itemBounds.Height + style.BorderWidth + this.padding.Y
+
+	this.itemBounds.Y += (this.itemBounds.Height + style.BorderWidth + this.padding.Y) * 2
 
 	this.renderSegmentLine()
 }
 
 func (this *EditPanel) renderFrameControl() {
 	buttonWidth := (this.Width - this.padding.X*3) / 2
-
 	localItemBounds := raylib.NewRectangle(
 		this.X+this.padding.X,
 		this.itemBounds.Y,
 		buttonWidth,
 		style.TextSize+style.BorderWidth*2)
 
-	if global.SelectedFrame <= 0 {
-		raygui.Disable()
-	}
-	if raygui.Button(localItemBounds, "Previous Frame") {
-		global.SendMessage(
-			constants.ServiceLedProcessor,
-			models.LoadFrameMessage{Index: global.SelectedFrame - 1})
-	}
-	raygui.Enable()
-
+	utils.RenderWithCondition(
+		func() {
+			if raygui.Button(localItemBounds, "Previous Frame") {
+				global.SendMessage(
+					constants.ServiceLedProcessor,
+					models.RenderFrameMessage{Index: global.SelectedFrame - 1})
+			}
+		},
+		global.SelectedFrame <= 0)
 	localItemBounds.X += localItemBounds.Width + this.padding.X
-	if global.SelectedFrame >= global.TotalFrameCount {
-		raygui.Disable()
-	}
-	if raygui.Button(localItemBounds, "Next Frame") {
-		global.SendMessage(
-			constants.ServiceLedProcessor,
-			models.LoadFrameMessage{Index: global.SelectedFrame + 1})
-	}
-	raygui.Enable()
+
+	utils.RenderWithCondition(
+		func() {
+			if raygui.Button(localItemBounds, "Next Frame") {
+				global.SendMessage(
+					constants.ServiceLedProcessor,
+					models.RenderFrameMessage{Index: global.SelectedFrame + 1})
+			}
+		},
+		global.SelectedFrame >= global.TotalFrameCount)
 	this.itemBounds.Y += this.itemBounds.Height + style.BorderWidth*3 + this.padding.Y
 
 	// --- New line ---
@@ -232,13 +231,19 @@ func (this *EditPanel) renderFrameControl() {
 		global.SendMessage(constants.UICubeGrid, models.ResetMessage{})
 		global.SendMessage(constants.ServiceLedProcessor, models.ResetMessage{})
 	}
-
 	localItemBounds.X += localItemBounds.Width + this.padding.X
-	if raygui.Button(localItemBounds, "Remove Frame") {
-		// TODO: add
-	}
 
+	utils.RenderWithCondition(
+		func() {
+			if raygui.Button(localItemBounds, "Remove Frame") {
+				global.SendMessage(
+					constants.ServiceLedProcessor,
+					models.RemoveFrameMessage{Index: global.SelectedFrame})
+			}
+		},
+		global.SelectedLayer == uint8(global.TotalFrameCount))
 	localItemBounds.X += localItemBounds.Width + this.padding.X
+
 	if raygui.Button(localItemBounds, "Save Frame") {
 		global.SendMessage(constants.UICubeGrid, models.SaveMessage{})
 	}
@@ -251,6 +256,8 @@ func (this *EditPanel) renderFrameControl() {
 		this.itemBounds.Y,
 		buttonWidth,
 		localItemBounds.Height)
+
+	localItemBounds.X += (localItemBounds.Width + this.padding.X) / 2
 	if raygui.Button(localItemBounds, "Fetch Light Shows") {
 		global.SendMessage(constants.ServiceLedProcessor, models.FetchMessage{})
 	}
@@ -264,28 +271,29 @@ func (this *EditPanel) renderFrameControl() {
 		selectionWidth,
 		localItemBounds.Height)
 
-	if this.lightShowData.IsEmpty() {
-		raygui.Disable()
-	}
-	if raygui.DropdownBox(
-		localItemBounds,
-		this.lightShowData.GetText(),
-		this.lightShowData.GetIndex(),
-		this.lightShowData.IsActive()) {
-		this.lightShowData.SwitchActive()
-	}
+	utils.RenderWithCondition(
+		func() {
+			if raygui.DropdownBox(
+				localItemBounds,
+				this.lightShowData.GetText(),
+				this.lightShowData.GetIndex(),
+				this.lightShowData.IsActive()) {
+				this.lightShowData.SwitchActive()
+			}
+		},
+		this.lightShowData.IsEmpty())
+	localItemBounds.X += localItemBounds.Width + this.padding.X
 
 	buttonWidth = (this.Width - this.padding.X*4) / 3
-	localItemBounds.X += localItemBounds.Width + this.padding.X
 	localItemBounds.Width = buttonWidth
-	if this.lightShowData.IsEmpty() || !this.lightShowData.IsSelected() {
-		raygui.Disable()
-	}
-	if raygui.Button(localItemBounds, "Load") {
-		lightShowName, _ := this.lightShowData.GetSelectedValue()
-		global.SendMessage(constants.ServiceLedProcessor, models.LoadMessage{Name: lightShowName})
-	}
-	raygui.Enable()
+	utils.RenderWithCondition(
+		func() {
+			if raygui.Button(localItemBounds, "Load") {
+				lightShowName, _ := this.lightShowData.GetSelectedValue()
+				global.SendMessage(constants.ServiceLedProcessor, models.LoadMessage{Name: lightShowName})
+			}
+		},
+		this.lightShowData.IsEmpty() || !this.lightShowData.IsSelected())
 	this.itemBounds.Y += this.itemBounds.Height + style.BorderWidth*3 + this.padding.Y
 
 	// --- New line ---
@@ -300,6 +308,27 @@ func (this *EditPanel) renderFrameControl() {
 	if raygui.Button(localItemBounds, "Save") {
 		global.SendMessage(constants.ServiceLedProcessor, models.SaveMessage{})
 	}
+	this.itemBounds.Y += this.itemBounds.Height + style.BorderWidth*3 + this.padding.Y
+
+	this.renderSegmentLine()
+}
+
+func (this *EditPanel) renderNetworkControl() {
+	buttonWidth := (this.Width - this.padding.X*3) / 2
+	buttonBounds := raylib.NewRectangle(
+		this.X+this.padding.X,
+		this.itemBounds.Y,
+		buttonWidth,
+		style.TextSize+style.BorderWidth*2)
+
+	buttonBounds.X += (buttonBounds.Width + this.padding.X) / 2
+	utils.RenderWithCondition(
+		func() {
+			if raygui.Button(buttonBounds, "Send Light Show") {
+				global.SendMessage(constants.ServiceLedProcessor, models.SendMessage{})
+			}
+		},
+		global.ConnectionStatus != global.Connected)
 	this.itemBounds.Y += this.itemBounds.Height + style.BorderWidth*3 + this.padding.Y
 
 	this.renderSegmentLine()

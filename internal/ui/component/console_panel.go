@@ -42,7 +42,7 @@ func newConsolePanel(base Panel) *ConsolePanel {
 		func(message any) {
 			stringMessage, ok := message.(string)
 			if !ok {
-				fmt.Printf("[CONSOLE_PANEL] Not a string message received, message %#v\n", message)
+				fmt.Printf("Not a string message received, message %#v\n", message)
 				return
 			}
 

@@ -142,7 +142,10 @@ func (this *CubeGrid) channelLoop() {
 		case models.SaveMessage:
 			global.SendMessage(
 				constants.ServiceLedProcessor,
-				models.AddToBufferMessage{Frame: this.frame.DeepClone()})
+				models.AddFrameMessage{
+					Frame: this.frame.DeepClone(),
+					Index: global.SelectedFrame,
+				})
 		case models.FillVisibleCubesMessage:
 			this.fillInVisibleCubes()
 		case models.SetFrameMessage:

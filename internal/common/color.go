@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"image/color"
 
+	"github.com/Tariomka/led-common-lib/pkg/led"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -23,6 +24,27 @@ var (
 	ColorViolet = raylib.NewColor(on, off, on, alpha)
 	ColorWhite  = raylib.NewColor(on, on, on, alpha)
 )
+
+func ColorToRGBA(c led.Color) color.RGBA {
+	switch c {
+	case led.Green:
+		return ColorGreen
+	case led.Blue:
+		return ColorBlue
+	case led.Red:
+		return ColorRed
+	case led.Cyan:
+		return ColorCyan
+	case led.Yellow:
+		return ColorYellow
+	case led.Violet:
+		return ColorViolet
+	case led.White:
+		return ColorWhite
+	default:
+		return ColorOff
+	}
+}
 
 func IntToRGBA(value int64) color.RGBA {
 	bytes := make([]byte, 8)

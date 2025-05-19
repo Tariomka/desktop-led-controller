@@ -4,9 +4,16 @@ import (
 	"github.com/Tariomka/desktop-led-controller/internal/data"
 )
 
-type AddToBufferMessage struct{ Frame data.CubeFrame }
+type AddFrameMessage struct {
+	Frame data.CubeFrame
+	Index uint32
+}
+
+type RemoveFrameMessage struct{ Index uint32 }
+type RenderFrameMessage struct{ Index uint32 }
+
+type SendMessage struct{}
 type RenameMessage struct{ Name string }
-type LoadFrameMessage struct{ Index uint32 }
 
 type FetchMessage struct{}
 type LoadMessage struct{ Name string }

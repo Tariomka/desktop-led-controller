@@ -15,8 +15,7 @@ type MenuPanel struct {
 	padding    raylib.Vector2
 	itemBounds raylib.Rectangle
 
-	connectionStatus int
-	retryToggle      bool
+	retryToggle bool
 
 	channel chan any
 }
@@ -60,7 +59,7 @@ func (this *MenuPanel) renderStatus() {
 	message := ""
 	innerColor := raylib.Blank
 	outerColor := raylib.Blank
-	switch this.connectionStatus {
+	switch global.ConnectionStatus {
 	case 0:
 		innerColor, outerColor = raylib.Pink, raylib.Red
 		message = "Disconnected"
@@ -107,10 +106,10 @@ func (this *MenuPanel) renderConnect() {
 
 	this.retryToggle = raygui.CheckBox(toggleBounds, "Keep Retrying", this.retryToggle)
 
-	switch this.connectionStatus {
+	switch global.ConnectionStatus {
 	case 0:
 		if raygui.Button(buttonBounds, raygui.IconText(raygui.ICON_LOCK_CLOSE, "Connect")) {
-			this.connectionStatus = 1
+			global.ConnectionStatus = 1
 			global.SendMessage(constants.TCPClient, models.TCPConnectMessage{})
 		}
 	case 1:
@@ -119,7 +118,7 @@ func (this *MenuPanel) renderConnect() {
 		raygui.Enable()
 	case 2:
 		if raygui.Button(buttonBounds, raygui.IconText(raygui.ICON_LOCK_OPEN, "Disconnect")) {
-			this.connectionStatus = 3
+			global.ConnectionStatus = 3
 			global.SendMessage(constants.TCPClient, models.TCPDisconnectMessage{})
 		}
 	case 3:
@@ -135,13 +134,13 @@ func (this *MenuPanel) channelLoop() {
 	for {
 		switch (<-this.channel).(type) {
 		case models.ConnectedMessage:
-			this.connectionStatus = 2
+			global.ConnectionStatus = 2
 		case models.DisconnectedMessage:
 			if !this.retryToggle {
-				this.connectionStatus = 0
+				global.ConnectionStatus = 0
 				continue
 			}
-			this.connectionStatus = 1
+			global.ConnectionStatus = 1
 			global.SendMessage(constants.TCPClient, models.TCPConnectMessage{})
 		}
 	}

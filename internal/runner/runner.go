@@ -20,7 +20,7 @@ type IRunner interface {
 
 type LedClientRunner struct {
 	window       *ui.Window
-	tcpClient    *tcp.LedClient
+	tcpClient    *tcp.TCPClient
 	ledProcessor *services.LedProcService
 	logger       *slog.Logger
 
@@ -33,7 +33,7 @@ func NewRunner(config RunnerConfig) IRunner {
 
 	return &LedClientRunner{
 		window: ui.NewWindow(),
-		tcpClient: tcp.NewClient(tcp.ClientConfig{
+		tcpClient: tcp.NewClient(tcp.TCPConfig{
 			Logger: logger,
 			IP:     config.IP,
 			Port:   config.Port,

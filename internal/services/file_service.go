@@ -47,10 +47,7 @@ func (this *FileService) AppendToFile(filePath string, payloads ...[]byte) error
 func (this *FileService) PeakFileContent(filePath string, length uint32) []byte {
 	file, err := this.getOrCreateFile(filePath)
 	if err != nil {
-		this.logger.Error(
-			"[FILE_SERVICE] file fetching failed",
-			"relative file path", filePath,
-			"error", err)
+		this.logger.Error("File fetching failed", "relative file path", filePath, "error", err)
 		return []byte{}
 	}
 
@@ -59,7 +56,7 @@ func (this *FileService) PeakFileContent(filePath string, length uint32) []byte 
 	info, err := file.Stat()
 	if err != nil {
 		this.logger.Error(
-			"[FILE_SERVICE] failed to read file information",
+			"Failed to read file information",
 			"relative file path", filePath,
 			"error", err)
 		return []byte{}
@@ -67,7 +64,7 @@ func (this *FileService) PeakFileContent(filePath string, length uint32) []byte 
 
 	if info.Size() > maxFileSize {
 		this.logger.Warn(
-			"[FILE_SERVICE] file exceeds maximum allowed size - file will not be read fully",
+			"File exceeds maximum allowed size - file will not be read fully",
 			"relative file path", filePath,
 			"maximum file size (MB)", maxFileSize/1_000_000)
 	}
@@ -81,10 +78,10 @@ func (this *FileService) PeakFileContent(filePath string, length uint32) []byte 
 		content = content[:len(content)+n]
 		if err != nil {
 			if err == io.EOF {
-				this.logger.Debug("[FILE_SERVICE] end of file")
+				this.logger.Debug("End of file")
 			} else {
 				this.logger.Error(
-					"[FILE_SERVICE] failed to read file content",
+					"Failed to read file content",
 					"relative file path", filePath,
 					"error", err)
 			}
@@ -115,15 +112,13 @@ func (this *FileService) SaveFile(filePath string, payloads ...[]byte) error {
 
 	err = this.AppendToFile(filePath, payloads...)
 	if err != nil {
-		this.logger.Warn("[FILE_SERVICE] failed to save new file, restoring backup")
+		this.logger.Warn("Failed to save new file, restoring backup")
 		if innerErr := this.deleteFile(filePath); innerErr != nil {
-			this.logger.Error(
-				"[FILE_SERVICE] error while deleting malformed file",
-				"inner error", innerErr)
+			this.logger.Error("Error while deleting malformed file", "inner error", innerErr)
 		}
 		if innerErr := this.copyFile(filePath+backupFileSuffix, filePath); innerErr != nil {
 			this.logger.Error(
-				"[FILE_SERVICE] failed to restore backed up file",
+				"Failed to restore backed up file",
 				"backed up file path", filePath+backupFileSuffix,
 				"inner error", innerErr)
 		}
@@ -137,10 +132,7 @@ func (this *FileService) SaveFile(filePath string, payloads ...[]byte) error {
 func (this *FileService) FindFiles(globPath string) []string {
 	files, err := this.getFiles(globPath)
 	if err != nil {
-		this.logger.Error(
-			"[FILE_SERVICE] failed to find files",
-			"pattern", globPath,
-			"error", err)
+		this.logger.Error("Failed to find files", "pattern", globPath, "error", err)
 	}
 	return files
 }
@@ -178,19 +170,13 @@ func (this *FileService) copyFile(sourcePath, destinationPath string) error {
 func (this *FileService) createFolderIfNotExists(directory string) (fullPath string, err error) {
 	fullPath, err = common.GetFullPathFromRelativePath(directory)
 	if err != nil {
-		this.logger.Error(
-			"[FILE_SERVICE] failed to read full path",
-			"relative path", directory,
-			"error", err)
+		this.logger.Error("Failed to read full path", "relative path", directory, "error", err)
 		return "", err
 	}
 
 	err = os.MkdirAll(fullPath, secureDirMode)
 	if err != nil {
-		this.logger.Error(
-			"[FILE_SERVICE] failed to make directory",
-			"absolute path", fullPath,
-			"error", err)
+		this.logger.Error("Failed to make directory", "absolute path", fullPath, "error", err)
 		return "", err
 	}
 
