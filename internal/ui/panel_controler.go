@@ -25,9 +25,8 @@ type PanelControler struct {
 //
 //	import rl "github.com/gen2brain/raylib-go/raylib"
 //	rl.InitWindow(...)
-func NewPanelControler(panelConfig ...component.PanelConfigFunc) component.Renderer {
+func NewPanelControler(panelConfig ...component.BasePanelConfigFunc) component.Renderer {
 	navBarHeight := style.TextLineSpacing
-	navBarConfig := append(panelConfig, func(pb *component.Panel) { pb.Height = navBarHeight })
 	panelConfig = append(
 		panelConfig,
 		func(pb *component.Panel) {
@@ -36,7 +35,6 @@ func NewPanelControler(panelConfig ...component.PanelConfigFunc) component.Rende
 		})
 
 	controller := &PanelControler{
-		navBar: component.NewPanel[*component.NavigationPanel](navBarConfig...),
 		panels: []component.NamedPanel{
 			component.NewNamedPanel[*component.EditPanel]("Edit", panelConfig...),
 			component.NewNamedPanel[*component.MenuPanel]("Menu", panelConfig...),
@@ -48,8 +46,11 @@ func NewPanelControler(panelConfig ...component.PanelConfigFunc) component.Rende
 		},
 	}
 
-	// TODO: Move to customizations
-	controller.navBar.(*component.NavigationPanel).SetParent(controller)
+	controller.navBar = component.NewPanel(
+		func(np *component.NavigationPanel) { np.Height = navBarHeight },
+		func(np *component.NavigationPanel) { np.SetParent(controller) },
+	)
+
 	return controller
 }
 

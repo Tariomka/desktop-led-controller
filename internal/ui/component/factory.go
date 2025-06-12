@@ -1,48 +1,53 @@
 package component
 
-import raylib "github.com/gen2brain/raylib-go/raylib"
+import (
+	"reflect"
 
-type PanelConfigFunc func(*Panel)
+	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
+	raylib "github.com/gen2brain/raylib-go/raylib"
+)
 
-type TypedPanelConfigFunc[Type Renderer] func(*Type) // TODO: try integrating this, or remove it
+type BasePanelConfigFunc func(*Panel)
+
+type PanelConfigFunc[Type Renderer] func(Type)
+
+func NewPanel[Type Renderer](panelConfig ...PanelConfigFunc[Type]) Renderer {
+	base := defaultTypedPanel[Type]()
+	for _, config := range panelConfig {
+		config(base)
+	}
+
+	switch panel := any(base).(type) {
+	case *NavigationPanel:
+		if panel.parent == nil {
+			panel.buttonStates = make([]bool, 0)
+		}
+		return panel
+	case *EditPanel:
+		return newEditPanel(panel.Panel)
+	case *MenuPanel:
+		return newMenuPanel(panel.Panel)
+	case *ConsolePanel:
+		return newConsolePanel(panel.Panel)
+	default:
+		return base
+	}
+}
 
 type NamedPanel struct {
 	Renderer
 	Title string
 }
 
-func NewNamedPanel[Type Renderer](title string, panelConfig ...PanelConfigFunc) NamedPanel {
+func NewNamedPanel[Type Renderer](title string, panelConfig ...BasePanelConfigFunc) NamedPanel {
 	return NamedPanel{
-		Renderer: NewPanel[Type](panelConfig...),
+		Renderer: NewPanelBase[Type](panelConfig...),
 		Title:    title,
 	}
 }
 
-func NewPanel[Type Renderer](panelConfig ...PanelConfigFunc) Renderer {
-	base := defaultPanel()
-	for _, config := range panelConfig {
-		config(&base)
-	}
-
-	var placeholder Type
-	switch any(placeholder).(type) {
-	case *NavigationPanel:
-		return &NavigationPanel{
-			Panel:        base,
-			parent:       nil,
-			buttonStates: make([]bool, 0),
-		}
-	case *EditPanel:
-		return newEditPanel(base)
-	case *MenuPanel:
-		return newMenuPanel(base)
-	case *ConsolePanel:
-		return newConsolePanel(base)
-	case *PlaceholderPanel:
-		return &PlaceholderPanel{Panel: base}
-	default:
-		panic("wrong renderer type")
-	}
+func NewPanelBase[Type Renderer](panelConfig ...BasePanelConfigFunc) Renderer {
+	return NewPanel(adaptPanelConfig[Type](panelConfig)...)
 }
 
 func NewElement[Type Renderer]() Renderer {
@@ -54,9 +59,49 @@ func NewElement[Type Renderer]() Renderer {
 			width:  250,
 			height: 100,
 		}
-	// case *MessageListView:
-	// 	return &MessageListView{}
 	default:
 		panic("wrong renderer type")
 	}
+}
+
+func adaptPanelConfig[Type Renderer](configs []BasePanelConfigFunc) []PanelConfigFunc[Type] {
+	adapted := make([]PanelConfigFunc[Type], len(configs))
+	for i, config := range configs {
+		adapted[i] = func(panel Type) {
+			rectangleField := reflect.ValueOf(panel).Elem().FieldByName("Rectangle")
+			if rectangleField.IsValid() && rectangleField.CanSet() {
+				temp := Panel{Rectangle: rectangleField.Interface().(raylib.Rectangle)}
+				config(&temp)
+				rectangleField.Set(reflect.ValueOf(temp.Rectangle))
+			}
+		}
+	}
+	return adapted
+}
+
+func defaultTypedPanel[Type Renderer]() Type {
+	rendererType := reflect.TypeOf((*Type)(nil)).Elem()
+	if rendererType.Kind() == reflect.Ptr {
+		rendererType = rendererType.Elem()
+	}
+	renderer := reflect.New(rendererType)
+	rectangleField := renderer.Elem().FieldByName("Rectangle")
+	if rectangleField.IsValid() && rectangleField.CanSet() {
+		rectangleField.Set(reflect.ValueOf(defaultRectangle()))
+	}
+	return renderer.Interface().(Type)
+}
+
+// Default calculates properties with respect to window size, which only works after raylib init is called.
+// See:
+//
+//	import rl "github.com/gen2brain/raylib-go/raylib"
+//	rl.InitWindow(...)
+func defaultRectangle() raylib.Rectangle {
+	panelWidth := float32(raylib.GetScreenWidth()) * style.PanelWidthCoeficient
+	return raylib.NewRectangle(
+		float32(raylib.GetScreenWidth())-panelWidth,
+		0,
+		panelWidth,
+		float32(raylib.GetScreenHeight()))
 }
