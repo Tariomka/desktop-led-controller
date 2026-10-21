@@ -2,6 +2,8 @@ github.com/Tariomka/led-common-lib v0.2.0 h1:yzFvK58yT+olEoXBaKDwbbWEuX4HeXaQNrq
 github.com/Tariomka/led-common-lib v0.2.0/go.mod h1:1pmGz2ee4V2m3dfDrc2j3gU+tE8rwKEG1Qq4lBxxak4=
 github.com/Tariomka/led-common-lib v0.3.0 h1:4SPRRNORetwokDXSwoXXvAr/IQu6gHSEaALYkOVdNxk=
 github.com/Tariomka/led-common-lib v0.3.0/go.mod h1:1pmGz2ee4V2m3dfDrc2j3gU+tE8rwKEG1Qq4lBxxak4=
+github.com/Tariomka/led-common-lib v0.5.0 h1:lYPbkzLMTRImhDvIfr/mLAu9JsoaIS/XRQ3U+rhZjBM=
+github.com/Tariomka/led-common-lib v0.5.0/go.mod h1:0ZVB8hU96roNqLXBi9vCIHpkkEXR0Vg8cXepPjbmMC0=
 github.com/ebitengine/purego v0.8.3 h1:K+0AjQp63JEZTEMZiwsI9g0+hAMNohwUOtY0RPGexmc=
 github.com/ebitengine/purego v0.8.3/go.mod h1:iIjxzd6CiRiOG0UyXP+V1+jWqUXVjPKLAI0mRfJZTmQ=
 github.com/gen2brain/raylib-go/raygui v0.0.0-20250504022611-e6017e5fc409 h1:E6UHTONZqUMvgTk5YvTUsBim49sIZfZ9/ZdRm7Y0hTA=

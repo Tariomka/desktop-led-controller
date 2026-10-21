@@ -25,6 +25,8 @@ func NewPanel[Type Renderer](panelConfig ...PanelConfigFunc[Type]) Renderer {
 		return panel
 	case *EditPanel:
 		return newEditPanel(panel.Panel)
+	case *ShowPanel:
+		return newShowPanel(panel.Panel)
 	case *MenuPanel:
 		return newMenuPanel(panel.Panel)
 	case *ConsolePanel:

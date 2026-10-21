@@ -1,21 +1,16 @@
 package models
 
-import (
-	"github.com/Tariomka/desktop-led-controller/internal/data"
-)
-
-type AddFrameMessage struct {
-	Frame data.CubeFrame
-	Index uint32
-}
-
-type RemoveFrameMessage struct{ Index uint32 }
-type RenderFrameMessage struct{ Index uint32 }
-
-type SendMessage struct{}
-type RenameMessage struct{ Name string }
-
+// FetchMessage asks for the list of saved projects.
 type FetchMessage struct{}
+
+// LoadMessage loads a saved project by name.
 type LoadMessage struct{ Name string }
-type SaveMessage struct{}
-type ResetMessage struct{}
+
+// ImportMessage loads a file dropped on the window: .ls, .gc, .hex or .bin.
+type ImportMessage struct{ Path string }
+
+// SaveMessage stores an encoded project under a name.
+type SaveMessage struct {
+	Name string
+	Data []byte
+}

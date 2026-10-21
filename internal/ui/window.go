@@ -1,8 +1,9 @@
 package ui
 
 import (
-	"github.com/Tariomka/desktop-led-controller/internal/data"
+	"github.com/Tariomka/desktop-led-controller/internal/common/constants"
 	"github.com/Tariomka/desktop-led-controller/internal/global"
+	"github.com/Tariomka/desktop-led-controller/internal/models"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/component"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
 	raylib "github.com/gen2brain/raylib-go/raylib"
@@ -12,15 +13,12 @@ type WindowConfigFunc func(*WindowConfig)
 
 type WindowConfig struct {
 	WindowWidth, WindowHeight int32
-	CubeBaseSize, CubeHeight  uint8
 }
 
 func defaultConfig() WindowConfig {
 	return WindowConfig{
 		WindowWidth:  1280,
 		WindowHeight: 720,
-		CubeBaseSize: 8,
-		CubeHeight:   8,
 	}
 }
 
@@ -53,11 +51,7 @@ func (this *Window) Start() {
 
 	style.LoadStyle()
 	this.hud = NewPanelControler()
-	this.cubeGrid = NewCubeGrid(
-		this.config.CubeBaseSize,
-		this.config.CubeBaseSize,
-		this.config.CubeHeight,
-		data.DefaultCubeSize)
+	this.cubeGrid = NewCubeGrid()
 }
 
 func (_ *Window) Stop() {
@@ -70,6 +64,7 @@ func (this *Window) Render() {
 		global.WindowShouldClose = raylib.WindowShouldClose()
 
 		// Update
+		this.importDroppedFiles()
 		this.cubeGrid.Update()
 		this.hud.Update()
 
@@ -81,4 +76,15 @@ func (this *Window) Render() {
 
 		raylib.EndDrawing()
 	}
+}
+
+// importDroppedFiles loads files dragged onto the window (.ls, .gc, .hex, .bin).
+func (this *Window) importDroppedFiles() {
+	if !raylib.IsFileDropped() {
+		return
+	}
+	for _, path := range raylib.LoadDroppedFiles() {
+		global.SendMessage(constants.ServiceShow, models.ImportMessage{Path: path})
+	}
+	raylib.UnloadDroppedFiles()
 }

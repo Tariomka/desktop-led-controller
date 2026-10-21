@@ -4,12 +4,12 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/Tariomka/desktop-led-controller/internal/client"
 	"github.com/Tariomka/desktop-led-controller/internal/common"
 	"github.com/Tariomka/desktop-led-controller/internal/common/constants"
 	"github.com/Tariomka/desktop-led-controller/internal/global"
 	"github.com/Tariomka/desktop-led-controller/internal/models"
 	"github.com/Tariomka/desktop-led-controller/internal/services"
-	"github.com/Tariomka/desktop-led-controller/internal/tcp"
 	"github.com/Tariomka/desktop-led-controller/internal/ui"
 )
 
@@ -19,10 +19,10 @@ type IRunner interface {
 }
 
 type LedClientRunner struct {
-	window       *ui.Window
-	tcpClient    *tcp.TCPClient
-	ledProcessor *services.LedProcService
-	logger       *slog.Logger
+	window      *ui.Window
+	client      *client.Client
+	showService *services.ShowService
+	logger      *slog.Logger
 
 	config RunnerConfig
 }
@@ -33,16 +33,14 @@ func NewRunner(config RunnerConfig) IRunner {
 
 	return &LedClientRunner{
 		window: ui.NewWindow(),
-		tcpClient: tcp.NewClient(tcp.TCPConfig{
+		client: client.NewClient(client.Config{
 			Logger: logger,
 			IP:     config.IP,
 			Port:   config.Port,
 		}),
-		ledProcessor: services.NewLedProcService(services.LedProcConfig{
-			Logger: logger,
-		}),
-		logger: logger,
-		config: config,
+		showService: services.NewShowService(logger),
+		logger:      logger,
+		config:      config,
 	}
 }
 

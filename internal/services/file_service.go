@@ -14,6 +14,9 @@ const (
 	bufferSize       = 4096
 	maxFileSize      = 100_000_000 // 100MB
 	backupFileSuffix = "_bak"
+
+	secureDirMode  = os.FileMode(0755)
+	secureFileMode = os.FileMode(0644)
 )
 
 // FileService requires relative paths for actions to work correctly
@@ -142,11 +145,13 @@ func (this *FileService) copyFile(sourcePath, destinationPath string) error {
 	if err != nil {
 		return err
 	}
+	defer source.Close()
 
 	destination, err := this.getOrCreateFile(destinationPath)
 	if err != nil {
 		return err
 	}
+	defer destination.Close()
 
 	buffer := make([]byte, bufferSize)
 	for {

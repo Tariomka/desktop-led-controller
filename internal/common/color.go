@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"image/color"
 
-	"github.com/Tariomka/led-common-lib/pkg/led"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -25,25 +24,12 @@ var (
 	ColorWhite  = raylib.NewColor(on, on, on, alpha)
 )
 
-func ColorToRGBA(c led.Color) color.RGBA {
-	switch c {
-	case led.Green:
-		return ColorGreen
-	case led.Blue:
-		return ColorBlue
-	case led.Red:
-		return ColorRed
-	case led.Cyan:
-		return ColorCyan
-	case led.Yellow:
-		return ColorYellow
-	case led.Violet:
-		return ColorViolet
-	case led.White:
-		return ColorWhite
-	default:
+// VoxelColor converts a cube color 0bRRGGBB (2 bits per channel) to a display color.
+func VoxelColor(value byte) color.RGBA {
+	if value&0x3F == 0 {
 		return ColorOff
 	}
+	return raylib.NewColor((value>>4&3)*85, (value>>2&3)*85, (value&3)*85, 200)
 }
 
 func IntToRGBA(value int64) color.RGBA {

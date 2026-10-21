@@ -1,155 +1,207 @@
 package ui
 
 import (
-	"iter"
+	"image/color"
+	"math"
+	"time"
 
 	"github.com/Tariomka/desktop-led-controller/internal/common"
-	"github.com/Tariomka/desktop-led-controller/internal/common/constants"
-	"github.com/Tariomka/desktop-led-controller/internal/data"
 	"github.com/Tariomka/desktop-led-controller/internal/global"
-	"github.com/Tariomka/desktop-led-controller/internal/models"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/component"
 	"github.com/Tariomka/desktop-led-controller/internal/ui/style"
+	"github.com/Tariomka/led-common-lib/pkg/lightshow/blob"
+	"github.com/Tariomka/led-common-lib/pkg/lightshow/render"
 	raylib "github.com/gen2brain/raylib-go/raylib"
 )
 
+const (
+	voxelSize    = 1
+	voxelSpacing = 2
+)
+
+var (
+	wireColor      = raylib.Fade(raylib.Black, 0.35)
+	unlitWireColor = raylib.Fade(raylib.Black, 0.08)
+)
+
+// CubeGrid is the 3-D view: the running preview, or else the selected graph colored with the
+// selected palette, which can be painted with the mouse.
 type CubeGrid struct {
-	frame data.CubeFrame
-	size  raylib.Vector3
+	camera raylib.Camera
+	screen raylib.Rectangle
+	start  time.Time
 
-	camera    *raylib.Camera
-	screen    raylib.Rectangle
-	ray       raylib.Ray
-	collision raylib.RayCollision
-
-	channel chan any
+	length, height, width int // size of the shown volume, to re-center the camera
 }
 
-func NewCubeGrid(xCount, yCount, zCount uint8, size raylib.Vector3) component.Renderer {
-	cubeGrid := &CubeGrid{
-		frame: data.NewCubeFrame(xCount, yCount, zCount, size),
-		size:  size,
-		camera: &raylib.Camera{
-			Position:   raylib.NewVector3(30.0, 30.0, 30.0),
-			Target:     raylib.NewVector3(10.0, 0.0, 0.0),
-			Up:         raylib.NewVector3(0.0, 1.0, 0.0),
-			Fovy:       float32(yCount)*float32(zCount) - float32(xCount),
+func NewCubeGrid() component.Renderer {
+	return &CubeGrid{
+		camera: raylib.Camera{
+			Up:         raylib.NewVector3(0, 1, 0),
+			Fovy:       45,
 			Projection: raylib.CameraPerspective,
 		},
-		screen: raylib.NewRectangle(
-			0, 0,
-			float32(raylib.GetScreenWidth())*style.RendererWidthCoeficient,
-			float32(raylib.GetScreenHeight())),
-		channel: make(chan any, 1),
+		screen: screenRectangle(),
+		start:  time.Now(),
 	}
+}
 
-	go cubeGrid.channelLoop()
-	global.RegisterMessageReceiver(
-		constants.UICubeGrid,
-		func(message any) { cubeGrid.channel <- message })
-
-	return cubeGrid
+func screenRectangle() raylib.Rectangle {
+	return raylib.NewRectangle(
+		0, 0,
+		float32(raylib.GetScreenWidth())*style.RendererWidthCoeficient,
+		float32(raylib.GetScreenHeight()))
 }
 
 func (this *CubeGrid) Update() {
 	if raylib.IsWindowResized() {
-		this.screen.Width = float32(raylib.GetScreenWidth()) * style.RendererWidthCoeficient
-		this.screen.Height = float32(raylib.GetScreenHeight())
+		this.screen = screenRectangle()
+	}
+	if global.Preview != nil {
+		global.Preview.Update(uint32(time.Since(this.start).Milliseconds()))
 	}
 
-	if global.ShouldChangeColor && raylib.IsMouseButtonPressed(raylib.MouseLeftButton) {
-		this.updateCollision()
+	length, height, width := this.volume()
+	if length != this.length || height != this.height || width != this.width {
+		this.length, this.height, this.width = length, height, width
+		this.resetCamera()
 	}
 
-	if raylib.IsMouseButtonDown(raylib.MouseLeftButton) &&
-		raylib.CheckCollisionPointRec(raylib.GetMousePosition(), this.screen) {
-		raylib.UpdateCamera(this.camera, raylib.CameraThirdPerson)
+	inside := raylib.CheckCollisionPointRec(raylib.GetMousePosition(), this.screen)
+	painting := global.ShouldPaint && global.Preview == nil
+	if inside && painting && raylib.IsMouseButtonDown(raylib.MouseLeftButton) {
+		this.paint()
+	}
+	if inside && (raylib.IsMouseButtonDown(raylib.MouseRightButton) ||
+		!painting && raylib.IsMouseButtonDown(raylib.MouseLeftButton)) {
+		raylib.UpdateCamera(&this.camera, raylib.CameraThirdPerson)
 	}
 }
 
 func (this *CubeGrid) Render() {
 	raylib.ClearBackground(raylib.DarkGray)
-	raylib.BeginMode3D(*this.camera)
-
-	for cube := range this.iterateCubesSelected() {
-		raylib.DrawCubeV(cube.Pos, this.size, cube.Color)
-		raylib.DrawCubeWiresV(cube.Pos, this.size, raylib.Black)
-	}
-
+	raylib.BeginMode3D(this.camera)
+	this.forEachVoxel(func(position raylib.Vector3, voxel *byte, voxelColor color.RGBA) {
+		size := raylib.NewVector3(voxelSize, voxelSize, voxelSize)
+		if voxelColor.A > 0 {
+			raylib.DrawCubeV(position, size, voxelColor)
+			raylib.DrawCubeWiresV(position, size, wireColor)
+		} else {
+			raylib.DrawCubeWiresV(position, size, unlitWireColor)
+		}
+	})
 	raylib.EndMode3D()
 }
 
-func (this *CubeGrid) iterateCubesSelected() iter.Seq[*data.Cube] {
-	if global.SelectedLayerState == global.All {
-		return this.frame.IterateCubes()
+// volume is the size of the shown voxel space.
+func (this *CubeGrid) volume() (length, height, width int) {
+	if global.Preview != nil {
+		for _, display := range global.Preview.Canvas.Displays {
+			length = max(length, display.X+display.L)
+			height = max(height, display.Y+display.H)
+			width = max(width, display.Z+display.W)
+		}
+		return length, height, width
 	}
-
-	xIndex, yIndex, zIndex := -1, -1, -1
-	if global.SelectedLayerState == global.Layer || global.SelectedLayerState == global.Precise {
-		zIndex = int(global.SelectedLayer)
+	if graph := selectedGraph(); graph != nil {
+		return graph.L, graph.H, graph.W
 	}
-	if global.SelectedLayerState == global.Column || global.SelectedLayerState == global.Precise {
-		yIndex = int(global.SelectedColumn)
-	}
-	return this.frame.IterateSingleOrAll(xIndex, yIndex, zIndex)
+	return 0, 0, 0
 }
 
-func (this *CubeGrid) updateCollision() {
-	this.ray = raylib.GetScreenToWorldRay(raylib.GetMousePosition(), *this.camera)
+func (this *CubeGrid) resetCamera() {
+	center := raylib.NewVector3(
+		float32(this.length-1)*voxelSpacing/2,
+		float32(this.height-1)*voxelSpacing/2,
+		float32(this.width-1)*voxelSpacing/2)
+	distance := float32(max(this.length, this.height, this.width, 1)) * voxelSpacing * 1.6
+	this.camera.Target = center
+	this.camera.Position = raylib.NewVector3(center.X+distance, center.Y+distance*0.8, center.Z+distance)
+}
 
-	for cube := range this.iterateCubesSelected() {
-		// TODO: This hits multiple cubes, need to think on how to handle only a single collision
-		this.collision = raylib.GetRayCollisionBox(
-			this.ray,
-			raylib.NewBoundingBox(
-				raylib.NewVector3(
-					cube.Pos.X-this.size.X/2,
-					cube.Pos.Y-this.size.Y/2,
-					cube.Pos.Z-this.size.Z/2),
-				raylib.NewVector3(
-					cube.Pos.X+this.size.X/2,
-					cube.Pos.Y+this.size.Y/2,
-					cube.Pos.Z+this.size.Z/2)))
+// forEachVoxel calls draw for every visible voxel; voxel is nil for preview voxels.
+func (this *CubeGrid) forEachVoxel(draw func(position raylib.Vector3, voxel *byte, voxelColor color.RGBA)) {
+	if global.Preview != nil {
+		for i := range global.Preview.Canvas.Displays {
+			display := &global.Preview.Canvas.Displays[i]
+			forEachCell(display.L, display.H, display.W, func(x, y, z, index int) {
+				draw(voxelPosition(display.X+x, display.Y+y, display.Z+z), nil, common.VoxelColor(display.Voxels[index]))
+			})
+		}
+		return
+	}
 
-		if this.collision.Hit {
-			cube.Color = global.SelectedColor
+	graph := selectedGraph()
+	if graph == nil {
+		return
+	}
+	palette := render.DefaultPalette
+	if global.SelectedPalette >= 0 && global.SelectedPalette < len(global.Project.Palettes) {
+		palette = string(global.Project.Palettes[global.SelectedPalette].Colors[:])
+	}
+	forEachCell(graph.L, graph.H, graph.W, func(x, y, z, index int) {
+		if !layerVisible(y, z) {
+			return
+		}
+		voxel := &graph.Voxels[index]
+		voxelColor := common.ColorOff
+		if *voxel != 0 && int(*voxel) < len(palette) {
+			voxelColor = common.VoxelColor(palette[*voxel])
+		}
+		draw(voxelPosition(x, y, z), voxel, voxelColor)
+	})
+}
+
+// paint sets the nearest voxel under the mouse to the selected palette index.
+func (this *CubeGrid) paint() {
+	ray := raylib.GetScreenToWorldRay(raylib.GetMousePosition(), this.camera)
+	var target *byte
+	nearest := float32(math.MaxFloat32)
+	half := raylib.NewVector3(voxelSize/2.0, voxelSize/2.0, voxelSize/2.0)
+	this.forEachVoxel(func(position raylib.Vector3, voxel *byte, _ color.RGBA) {
+		box := raylib.NewBoundingBox(raylib.Vector3Subtract(position, half), raylib.Vector3Add(position, half))
+		if hit := raylib.GetRayCollisionBox(ray, box); hit.Hit && hit.Distance < nearest {
+			nearest, target = hit.Distance, voxel
+		}
+	})
+	if target != nil {
+		*target = byte(global.SelectedColor)
+	}
+}
+
+func selectedGraph() *blob.GraphData {
+	graphs := global.Project.Graphs
+	if global.SelectedGraph < 0 || global.SelectedGraph >= len(graphs) {
+		return nil
+	}
+	return &graphs[global.SelectedGraph]
+}
+
+func layerVisible(y, z int) bool {
+	switch global.SelectedLayerState {
+	case global.Layer:
+		return y == int(global.SelectedLayer)
+	case global.Column:
+		return z == int(global.SelectedColumn)
+	case global.Precise:
+		return y == int(global.SelectedLayer) && z == int(global.SelectedColumn)
+	}
+	return true
+}
+
+// forEachCell walks a volume in voxel index order x + y*L + z*L*H (y is up).
+func forEachCell(length, height, width int, callback func(x, y, z, index int)) {
+	index := 0
+	for z := range width {
+		for y := range height {
+			for x := range length {
+				callback(x, y, z, index)
+				index++
+			}
 		}
 	}
 }
 
-func (this *CubeGrid) fillInVisibleCubes() {
-	for cube := range this.iterateCubesSelected() {
-		cube.Color = global.SelectedColor
-	}
-}
-
-func (this *CubeGrid) resetCubes() {
-	for cube := range this.frame.IterateCubes() {
-		cube.Color = common.ColorOff
-	}
-}
-
-func (this *CubeGrid) overwriteCubes(frame data.CubeFrame) {
-	this.frame = frame.DeepClone()
-}
-
-// Blocking message loop
-func (this *CubeGrid) channelLoop() {
-	for {
-		switch message := (<-this.channel).(type) {
-		case models.ResetMessage:
-			this.resetCubes()
-		case models.SaveMessage:
-			global.SendMessage(
-				constants.ServiceLedProcessor,
-				models.AddFrameMessage{
-					Frame: this.frame.DeepClone(),
-					Index: global.SelectedFrame,
-				})
-		case models.FillVisibleCubesMessage:
-			this.fillInVisibleCubes()
-		case models.SetFrameMessage:
-			this.overwriteCubes(message.Frame)
-		}
-	}
+func voxelPosition(x, y, z int) raylib.Vector3 {
+	return raylib.NewVector3(float32(x)*voxelSpacing, float32(y)*voxelSpacing, float32(z)*voxelSpacing)
 }

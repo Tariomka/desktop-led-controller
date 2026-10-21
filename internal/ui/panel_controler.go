@@ -36,10 +36,10 @@ func NewPanelControler(panelConfig ...component.BasePanelConfigFunc) component.R
 
 	controller := &PanelControler{
 		panels: []component.NamedPanel{
+			component.NewNamedPanel[*component.ShowPanel]("Show", panelConfig...),
 			component.NewNamedPanel[*component.EditPanel]("Edit", panelConfig...),
-			component.NewNamedPanel[*component.MenuPanel]("Menu", panelConfig...),
+			component.NewNamedPanel[*component.MenuPanel]("Cube", panelConfig...),
 			component.NewNamedPanel[*component.ConsolePanel]("Console", panelConfig...),
-			component.NewNamedPanel[*component.PlaceholderPanel]("Placeholder", panelConfig...),
 		},
 		dialogs: []component.Renderer{
 			component.NewElement[*component.ExitDialog](),
