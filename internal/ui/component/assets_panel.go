@@ -40,10 +40,10 @@ type AssetsPanel struct {
 }
 
 func (this *AssetsPanel) Draw(bounds raylib.Rectangle) {
-	raylib.DrawRectangleRec(bounds, style.BackgroundColor)
+	raylib.DrawRectangleRec(bounds, style.Panel)
 	raylib.DrawRectangleLinesEx(bounds, 1, style.BorderColor)
 	layout := newRowLayout(bounds, Padding)
-	utils.RenderText("Assets", raylib.NewRectangle(layout.x, layout.y, layout.width-24, style.TextSize), raylib.White)
+	utils.RenderText("Assets", raylib.NewRectangle(layout.x, layout.y, layout.width-24, style.TextSize), style.TextBright)
 	layout.space(style.TextSize + Padding)
 
 	buttons := layout.remaining() - 2*ControlHeight() - 2*layout.padding
@@ -148,7 +148,7 @@ func (this *AssetsPanel) drawTree(bounds raylib.Rectangle) {
 			textColor = MutedColor
 		}
 		if row.header >= 0 {
-			textColor = raylib.White
+			textColor = style.TextBright
 		}
 		utils.RenderText(row.text, raylib.NewRectangle(rowBounds.X+6, rowBounds.Y, rowBounds.Width-12, rowBounds.Height), textColor)
 

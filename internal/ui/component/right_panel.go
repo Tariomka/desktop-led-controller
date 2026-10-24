@@ -35,7 +35,7 @@ func NewRightPanel(actions *Actions, assets *AssetsPanel) *RightPanel {
 }
 
 func (this *RightPanel) Draw(bounds raylib.Rectangle) {
-	raylib.DrawRectangleRec(bounds, style.BackgroundColor)
+	raylib.DrawRectangleRec(bounds, style.Panel)
 	raylib.DrawRectangleLinesEx(bounds, 1, style.BorderColor)
 
 	tabBounds := raylib.NewRectangle(bounds.X+20, bounds.Y+Padding, bounds.Width-20-Padding, ControlHeight())

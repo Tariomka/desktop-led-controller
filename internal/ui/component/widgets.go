@@ -20,14 +20,14 @@ const (
 )
 
 var (
-	AccentColor  = raylib.NewColor(0x2f, 0x80, 0xed, 255)
+	AccentColor  = style.Accent
 	WarningColor = raylib.Orange
 	ErrorColor   = raylib.NewColor(0xe7, 0x4c, 0x3c, 255)
 	OKColor      = raylib.NewColor(0x2e, 0xcc, 0x71, 255)
-	MutedColor   = raylib.NewColor(0x9a, 0x9b, 0xa3, 255)
-	HeaderColor  = raylib.NewColor(0x2d, 0x2e, 0x35, 255)
-	SelectColor  = raylib.NewColor(0x33, 0x41, 0x5c, 255)
-	StripColor   = raylib.NewColor(0x2d, 0x2e, 0x35, 255)
+	MutedColor   = style.TextMuted
+	HeaderColor  = style.Bar
+	SelectColor  = style.Selection
+	StripColor   = style.Bar
 )
 
 // editing is the id of the text/value control in edit mode; only one at a time.
@@ -105,9 +105,9 @@ func (this *rowLayout) label(text string, textColor color.RGBA) {
 }
 
 func (this *rowLayout) header(text string) {
-	bounds := raylib.NewRectangle(this.x, this.y, this.width, style.TextSize+6)
+	bounds := raylib.NewRectangle(this.x, this.y, this.width, style.TextSize+8)
 	raylib.DrawRectangleRec(bounds, HeaderColor)
-	utils.RenderText(text, raylib.NewRectangle(this.x+6, this.y, this.width-12, bounds.Height), style.TextColorNormal)
+	utils.RenderText(text, raylib.NewRectangle(this.x+8, this.y, this.width-16, bounds.Height), style.TextBright)
 	this.y += bounds.Height + this.padding
 }
 
@@ -146,10 +146,19 @@ func accentButton(bounds raylib.Rectangle, text string, disabled bool) bool {
 // toggleButton is a button that looks pressed while active.
 func toggleButton(bounds raylib.Rectangle, text string, active bool) bool {
 	if active {
-		raylib.DrawRectangleRec(bounds, SelectColor)
+		raylib.DrawRectangleRec(bounds, style.Background)
+	} else {
+		raylib.DrawRectangleRec(bounds, style.Panel)
 	}
 	clicked := raygui.LabelButton(bounds, "")
-	raylib.DrawRectangleLinesEx(bounds, style.BorderWidth, style.BorderColor)
+	edge := style.Border
+	if active {
+		edge = AccentColor
+	}
+	if mouseIn(bounds) && !active {
+		edge = style.ControlEdge
+	}
+	raylib.DrawRectangleLinesEx(bounds, style.BorderWidth, edge)
 	utils.RenderText(text, utils.GetTextBounds(bounds), style.TextColorNormal)
 	return clicked
 }

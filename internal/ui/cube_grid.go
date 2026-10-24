@@ -24,7 +24,7 @@ var (
 	wireColor      = raylib.Fade(raylib.Black, 0.35)
 	unlitWireColor = raylib.Fade(raylib.Black, 0.08)
 	hoverColor     = raylib.Fade(raylib.White, 0.5)
-	viewBackground = raylib.NewColor(0x17, 0x18, 0x1c, 255)
+	viewBackground = style.View
 )
 
 // CubeGrid is the 3-D view: the running preview, or else the selected graph colored with the

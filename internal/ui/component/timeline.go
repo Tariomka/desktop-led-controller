@@ -289,7 +289,7 @@ const (
 )
 
 func (this *BottomPanel) Draw(bounds raylib.Rectangle) {
-	raylib.DrawRectangleRec(bounds, style.BackgroundColor)
+	raylib.DrawRectangleRec(bounds, style.Panel)
 	raylib.DrawRectangleLinesEx(bounds, 1, style.BorderColor)
 	tabBounds := raylib.NewRectangle(bounds.X+Padding, bounds.Y+Padding+6, 184, ControlHeight()-4)
 	if tab := tabs(tabBounds, "Timeline;Console", this.Tab); tab != this.Tab {

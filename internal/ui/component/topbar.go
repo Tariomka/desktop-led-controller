@@ -24,7 +24,8 @@ type Actions struct {
 type TopBar struct{}
 
 func (this *TopBar) Draw(bounds raylib.Rectangle, actions *Actions, panels *config.Panels) {
-	raylib.DrawRectangleRec(bounds, style.BackgroundColor)
+	_ = panels
+	raylib.DrawRectangleRec(bounds, style.Bar)
 	raylib.DrawLine(int32(bounds.X), int32(bounds.Y+bounds.Height-1), int32(bounds.X+bounds.Width), int32(bounds.Y+bounds.Height-1), style.BorderColor)
 
 	height := ControlHeight()
@@ -52,22 +53,17 @@ func (this *TopBar) Draw(bounds raylib.Rectangle, actions *Actions, panels *conf
 	if global.Dirty {
 		name += " *"
 	}
-	utils.RenderText(name, raylib.NewRectangle(bounds.X+bounds.Width/2-200, y, 400, height), raylib.White)
+	raygui.SetStyle(raygui.LABEL, raygui.TEXT_ALIGNMENT, raygui.TEXT_ALIGN_CENTER)
+	raygui.Label(raylib.NewRectangle(bounds.X+bounds.Width/2-200, y, 400, height), name)
+	raygui.SetStyle(raygui.LABEL, raygui.TEXT_ALIGNMENT, raygui.TEXT_ALIGN_RIGHT)
+	set(raygui.LABEL, raygui.TEXT_COLOR_NORMAL, connectionColor())
+	raygui.Label(raylib.NewRectangle(bounds.X+bounds.Width-Padding-260, y, 260, height), connectionText())
+	set(raygui.LABEL, raygui.TEXT_COLOR_NORMAL, style.Text)
+	raygui.SetStyle(raygui.LABEL, raygui.TEXT_ALIGNMENT, raygui.TEXT_ALIGN_LEFT)
+}
 
-	// Panel toggles and the connection state on the right.
-	x = bounds.X + bounds.Width - Padding - 220
-	utils.RenderText(connectionText(), raylib.NewRectangle(x, y, 220, height), connectionColor())
-	x -= Padding + 3*(height+2)
-	toggles := []struct {
-		text string
-		open *bool
-	}{{"L", &panels.LeftOpen}, {"R", &panels.RightOpen}, {"B", &panels.BottomOpen}}
-	for _, toggle := range toggles {
-		if toggleButton(raylib.NewRectangle(x, y, height, height), toggle.text, *toggle.open) {
-			*toggle.open = !*toggle.open
-		}
-		x += height + 2
-	}
+func set(control raygui.ControlID, property raygui.PropertyID, value raylib.Color) {
+	raygui.SetStyle(control, property, raygui.NewColorPropertyValue(value))
 }
 
 func connectionText() string {
@@ -105,7 +101,7 @@ type StatusBar struct {
 }
 
 func (this *StatusBar) Draw(bounds raylib.Rectangle, cube *CubeTab) {
-	raylib.DrawRectangleRec(bounds, style.BackgroundColor)
+	raylib.DrawRectangleRec(bounds, style.Bar)
 	raylib.DrawLine(int32(bounds.X), int32(bounds.Y), int32(bounds.X+bounds.Width), int32(bounds.Y), style.BorderColor)
 	textColor := MutedColor
 	if this.IsError {

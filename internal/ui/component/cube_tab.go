@@ -14,7 +14,7 @@ import (
 )
 
 // Factory functions of KEY1..KEY7 (uploaded shows may remap them).
-var keyNames = [7]string{"Prev", "Next", "Spd+", "Spd-", "Pause", "Model", "Disp"}
+var keyNames = [7]string{"Prev", "Next", "Sp+", "Sp-", "Pause", "Mode", "Disp"}
 
 // CubeTab connects to the Pico and controls the cube: status, keys, cartoon and registry.
 type CubeTab struct {
