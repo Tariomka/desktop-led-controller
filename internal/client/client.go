@@ -28,6 +28,9 @@ const (
 	// UploadTimeout is the longest wait for an upload reply: a chunk is 2 cube records with a 1 s
 	// timeout and one retry each, the end needs the cube's "Show upload OK".
 	UploadTimeout = 15 * time.Second
+
+	pingInterval = 5 * time.Second
+	missedPings  = 2 // pongs missed before the Pico counts as not responding
 )
 
 var (
@@ -50,6 +53,7 @@ type Client struct {
 	connection net.Conn
 	uploading  bool
 	replies    chan tcp.Message // upload progress and results while uploading
+	pending    int              // pings without a pong
 
 	channel chan any
 }
@@ -72,14 +76,50 @@ func NewClient(config Config) *Client {
 // Run serves an established connection (e.g. a net.Pipe in tests) until it closes.
 func (this *Client) Run(connection net.Conn) {
 	this.mutex.Lock()
-	this.connection = connection
+	this.connection, this.pending = connection, 0
 	this.mutex.Unlock()
 
-	global.SendMessage(constants.UIMenuPanel, models.ConnectedMessage{})
+	global.SendMessage(constants.UIApp, models.ConnectedMessage{})
+	global.SendMessage(constants.UIApp, models.LinkHealthMessage{Responding: true})
 	if err := this.write(tcp.NewHello(helloName)); err != nil {
 		this.logger.Error("Failed to send hello", "error", err)
 	}
+	go this.ping(connection)
 	this.receive(connection)
+}
+
+// ping checks the link while idle: a pong must arrive before the next ping.
+func (this *Client) ping(connection net.Conn) {
+	ticker := time.NewTicker(pingInterval)
+	defer ticker.Stop()
+	for range ticker.C {
+		this.mutex.Lock()
+		current, uploading := this.connection == connection, this.uploading
+		if !current {
+			this.mutex.Unlock()
+			return
+		}
+		if uploading {
+			this.mutex.Unlock()
+			continue
+		}
+		this.pending++
+		missed := this.pending
+		this.mutex.Unlock()
+
+		if missed == missedPings+1 {
+			this.logger.Warn("Pico is not responding to pings")
+			global.SendMessage(constants.UIApp, models.LinkHealthMessage{Responding: false})
+		}
+		if missed > missedPings+1 {
+			this.console(models.SourceApp, "Pico stopped responding, closing the connection")
+			connection.Close()
+			return
+		}
+		if err := this.write(tcp.NewPing()); err != nil {
+			return
+		}
+	}
 }
 
 func (this *Client) Connect() {
@@ -91,12 +131,19 @@ func (this *Client) Connect() {
 	if err != nil {
 		this.logger.Error("Failed to dial remote address", "address", this.address, "error", err)
 		this.console(models.SourceApp, "Connection to "+this.address+" failed: "+err.Error())
-		global.SendMessage(constants.UIMenuPanel, models.DisconnectedMessage{})
+		global.SendMessage(constants.UIApp, models.DisconnectedMessage{})
 		return
 	}
 
 	this.logger.Info("Connected", "remote address", connection.RemoteAddr().String())
 	go this.Run(connection)
+}
+
+// Configure sets the address for the next connection.
+func (this *Client) Configure(ip string, port uint16) {
+	this.mutex.Lock()
+	this.address = fmt.Sprintf("%s:%d", ip, port)
+	this.mutex.Unlock()
 }
 
 func (this *Client) Disconnect() {
@@ -166,7 +213,7 @@ func (this *Client) closed(connection net.Conn, err error) {
 		this.logger.Error("Connection lost", "error", err)
 		this.console(models.SourceApp, "Connection lost: "+err.Error())
 	}
-	global.SendMessage(constants.UIMenuPanel, models.DisconnectedMessage{})
+	global.SendMessage(constants.UIApp, models.DisconnectedMessage{})
 }
 
 func (this *Client) handle(message tcp.Message) {
@@ -174,9 +221,7 @@ func (this *Client) handle(message tcp.Message) {
 	case tcp.TypeHello:
 		this.console(models.SourceApp, "Connected to "+message.Text())
 	case tcp.TypeCubeLine:
-		line := models.ConsoleLineMessage{Source: models.SourceCube, Text: message.Text()}
-		global.SendMessage(constants.UIConsolePanel, line)
-		global.SendMessage(constants.UIMenuPanel, line)
+		this.console(models.SourceCube, message.Text())
 	case tcp.TypePicoLine:
 		this.console(models.SourcePico, message.Text())
 	case tcp.TypeUploadProgress, tcp.TypeUploadResult:
@@ -194,13 +239,20 @@ func (this *Client) handle(message tcp.Message) {
 			this.logger.Error("Failed to answer ping", "error", err)
 		}
 	case tcp.TypePong:
+		this.mutex.Lock()
+		recovered := this.pending > missedPings
+		this.pending = 0
+		this.mutex.Unlock()
+		if recovered {
+			global.SendMessage(constants.UIApp, models.LinkHealthMessage{Responding: true})
+		}
 	default:
 		this.logger.Warn("Unexpected message", "type", message.Type)
 	}
 }
 
 func (this *Client) console(source models.ConsoleSource, text string) {
-	global.SendMessage(constants.UIConsolePanel, models.ConsoleLineMessage{Source: source, Text: text})
+	global.SendMessage(constants.UIApp, models.ConsoleLineMessage{Source: source, Text: text})
 }
 
 func (this *Client) command(line string) {
@@ -218,7 +270,7 @@ func (this *Client) Upload(data []byte) {
 	err := this.upload(data)
 	if err != nil {
 		this.logger.Error("Upload failed", "error", err)
-		global.SendMessage(constants.UIShowPanel, models.UploadResultMessage{Text: err.Error()})
+		global.SendMessage(constants.UIApp, models.UploadResultMessage{Text: err.Error()})
 	}
 }
 
@@ -258,7 +310,7 @@ func (this *Client) upload(data []byte) error {
 			if err != nil {
 				return err
 			}
-			global.SendMessage(constants.UIShowPanel, models.UploadProgressMessage{Acked: int(acked), Total: int(total)})
+			global.SendMessage(constants.UIApp, models.UploadProgressMessage{Acked: int(acked), Total: int(total)})
 			if int(acked) >= end {
 				break
 			}
@@ -299,7 +351,7 @@ func (this *Client) result(reply tcp.Message) {
 		text = err.Error()
 	}
 	this.logger.Info("Upload finished", "ok", ok, "message", text)
-	global.SendMessage(constants.UIShowPanel, models.UploadResultMessage{OK: ok, Text: text})
+	global.SendMessage(constants.UIApp, models.UploadResultMessage{OK: ok, Text: text})
 }
 
 // Blocking message loop
@@ -310,10 +362,20 @@ func (this *Client) channelLoop() {
 			this.Connect()
 		case models.TCPDisconnectMessage:
 			this.Disconnect()
+		case models.TCPConfigureMessage:
+			this.Configure(message.IP, message.Port)
 		case models.TCPCommandMessage:
 			this.command(message.Line)
 		case models.TCPUploadMessage:
 			go this.Upload(message.Data)
+		case models.TCPUploadCancelMessage:
+			this.mutex.Lock()
+			uploading := this.uploading
+			this.mutex.Unlock()
+			if uploading {
+				this.console(models.SourceApp, "Upload cancelled")
+				this.Disconnect()
+			}
 		}
 	}
 }

@@ -57,10 +57,9 @@ func receive[T any](t *testing.T, channel chan any) T {
 }
 
 func TestClientSession(t *testing.T) {
-	menu, console, showPanel := make(chan any, 64), make(chan any, 64), make(chan any, 64)
-	global.RegisterMessageReceiver(constants.UIMenuPanel, func(message any) { menu <- message })
-	global.RegisterMessageReceiver(constants.UIConsolePanel, func(message any) { console <- message })
-	global.RegisterMessageReceiver(constants.UIShowPanel, func(message any) { showPanel <- message })
+	app := make(chan any, 256)
+	global.RegisterMessageReceiver(constants.UIApp, func(message any) { app <- message })
+	menu, console, showPanel := app, app, app
 
 	desktop, picoSide := net.Pipe()
 	defer picoSide.Close()
@@ -73,13 +72,20 @@ func TestClientSession(t *testing.T) {
 	}
 
 	pico.write(tcp.NewHello("rpi-led-cube"))
-	if line := receive[models.ConsoleLineMessage](t, console); line.Source != models.SourceApp {
-		t.Fatalf("hello: got %+v", line)
+	for {
+		if line := receive[models.ConsoleLineMessage](t, console); line.Source == models.SourceApp {
+			break
+		}
 	}
 
 	pico.write(tcp.NewCubeLine("Status:Mode=Text,Cartoon=1,Count=9"))
-	if line := receive[models.ConsoleLineMessage](t, menu); line.Source != models.SourceCube || line.Text != "Status:Mode=Text,Cartoon=1,Count=9" {
-		t.Fatalf("cube line: got %+v", line)
+	for {
+		if line := receive[models.ConsoleLineMessage](t, menu); line.Source == models.SourceCube {
+			if line.Text != "Status:Mode=Text,Cartoon=1,Count=9" {
+				t.Fatalf("cube line: got %+v", line)
+			}
+			break
+		}
 	}
 	pico.write(tcp.NewPicoLine("INFO Desktop connected"))
 	for {

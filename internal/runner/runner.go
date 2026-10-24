@@ -1,12 +1,14 @@
 package runner
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 
 	"github.com/Tariomka/desktop-led-controller/internal/client"
 	"github.com/Tariomka/desktop-led-controller/internal/common"
 	"github.com/Tariomka/desktop-led-controller/internal/common/constants"
+	"github.com/Tariomka/desktop-led-controller/internal/config"
 	"github.com/Tariomka/desktop-led-controller/internal/global"
 	"github.com/Tariomka/desktop-led-controller/internal/models"
 	"github.com/Tariomka/desktop-led-controller/internal/services"
@@ -23,24 +25,25 @@ type LedClientRunner struct {
 	client      *client.Client
 	showService *services.ShowService
 	logger      *slog.Logger
-
-	config RunnerConfig
 }
 
-func NewRunner(config RunnerConfig) IRunner {
-	// TODO: Validate configuration
+func NewRunner() IRunner {
 	logger := common.NewStructuredLogger(os.Stdout, slog.LevelDebug)
+	settings, err := config.Load()
+	if err != nil {
+		fmt.Printf("Using default settings: %s\n", err.Error())
+	}
+	global.Settings = settings
 
 	return &LedClientRunner{
 		window: ui.NewWindow(),
 		client: client.NewClient(client.Config{
 			Logger: logger,
-			IP:     config.IP,
-			Port:   config.Port,
+			IP:     settings.IP,
+			Port:   settings.Port,
 		}),
 		showService: services.NewShowService(logger),
 		logger:      logger,
-		config:      config,
 	}
 }
 

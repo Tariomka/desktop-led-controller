@@ -116,6 +116,9 @@ func LoadStyle() {
 	raygui.SetStyle(raygui.BUTTON, raygui.BASE_COLOR_PRESSED, 0x5b_1e_20_ff)
 
 	raygui.SetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE, 0)
+	// Check box labels go to the right of the box.
+	raygui.SetStyle(raygui.CHECKBOX, raygui.TEXT_ALIGNMENT, raygui.TEXT_ALIGN_RIGHT)
+	raygui.SetStyle(raygui.CHECKBOX, raygui.TEXT_PADDING, 6)
 	// raygui.SetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE, raygui.TEXT_WRAP_CHAR)
 	// raygui.SetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE, raygui.TEXT_WRAP_WORD)
 

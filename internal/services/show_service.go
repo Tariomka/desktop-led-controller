@@ -56,20 +56,22 @@ func (this *ShowService) Fetch() {
 	for _, file := range files {
 		names = append(names, strings.TrimSuffix(filepath.Base(file), projectExtension))
 	}
-	global.SendMessage(constants.UIShowPanel, models.ProjectListMessage{Names: names})
+	global.SendMessage(constants.UIApp, models.ProjectListMessage{Names: names})
 }
 
 func (this *ShowService) Load(name string) {
 	path, err := projectPath(name)
 	if err == nil {
-		this.Import(path)
+		this.load(path, "")
 		return
 	}
 	this.report(err, "Loading failed")
 }
 
 // Import reads a project, vendor project, firmware image or show data file.
-func (this *ShowService) Import(path string) {
+func (this *ShowService) Import(path string) { this.load(path, path) }
+
+func (this *ShowService) load(path, source string) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		this.report(err, "Reading failed")
@@ -99,7 +101,7 @@ func (this *ShowService) Import(path string) {
 
 	name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
 	this.logger.Info("Project loaded", "file", path)
-	global.SendMessage(constants.UIShowPanel, models.ProjectLoadedMessage{Name: name, Project: project})
+	global.SendMessage(constants.UIApp, models.ProjectLoadedMessage{Name: name, Path: source, Project: project})
 	this.status(fmt.Sprintf("Loaded %s", filepath.Base(path)), false)
 }
 
@@ -118,13 +120,56 @@ func (this *ShowService) Save(name string, data []byte) {
 	this.report(err, "Saving failed")
 }
 
+func (this *ShowService) Rename(from, to string) {
+	fromPath, err := projectPath(from)
+	if err == nil {
+		var toPath string
+		if toPath, err = projectPath(to); err == nil {
+			err = os.Rename(fromPath, toPath)
+		}
+	}
+	if err != nil {
+		this.report(err, "Renaming failed")
+		return
+	}
+	this.status("Renamed to "+to+projectExtension, false)
+	this.Fetch()
+}
+
+func (this *ShowService) Delete(name string) {
+	path, err := projectPath(name)
+	if err == nil {
+		err = os.Remove(path)
+	}
+	if err != nil {
+		this.report(err, "Deleting failed")
+		return
+	}
+	this.status("Deleted "+name+projectExtension, false)
+	this.Fetch()
+}
+
+// Export writes compiled show data next to the projects.
+func (this *ShowService) Export(name string, data []byte) {
+	if _, err := projectPath(name); err != nil {
+		this.report(err, "Export failed")
+		return
+	}
+	relative := filepath.Join(projectDir, name+".bin")
+	if err := this.fileService.SaveFile(relative, data); err != nil {
+		this.report(err, "Export failed")
+		return
+	}
+	this.status(fmt.Sprintf("Exported %s.bin (%d bytes)", name, len(data)), false)
+}
+
 func (this *ShowService) report(err error, text string) {
 	this.logger.Error(text, "error", err)
 	this.status(text+": "+err.Error(), true)
 }
 
 func (this *ShowService) status(text string, isError bool) {
-	global.SendMessage(constants.UIShowPanel, models.StatusTextMessage{Text: text, Error: isError})
+	global.SendMessage(constants.UIApp, models.StatusTextMessage{Text: text, Error: isError})
 }
 
 func projectPath(name string) (string, error) {
@@ -146,6 +191,12 @@ func (this *ShowService) channelLoop() {
 			this.Import(message.Path)
 		case models.SaveMessage:
 			this.Save(message.Name, message.Data)
+		case models.RenameProjectMessage:
+			this.Rename(message.From, message.To)
+		case models.DeleteProjectMessage:
+			this.Delete(message.Name)
+		case models.ExportMessage:
+			this.Export(message.Name, message.Data)
 		default:
 			this.logger.Warn("Unhandled message", "type", reflect.TypeOf(message))
 		}

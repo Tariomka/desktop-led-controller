@@ -6,6 +6,9 @@ type ConnectedMessage struct{}
 
 type DisconnectedMessage struct{}
 
+// LinkHealthMessage reports whether the Pico answers pings.
+type LinkHealthMessage struct{ Responding bool }
+
 type ConsoleSource int
 
 const (
@@ -33,6 +36,7 @@ type ProjectListMessage struct{ Names []string }
 // ProjectLoadedMessage hands a loaded or imported project to the UI, which owns it from then on.
 type ProjectLoadedMessage struct {
 	Name    string
+	Path    string // source file, empty for saved projects
 	Project *show.Project
 }
 
