@@ -22,9 +22,12 @@ import (
 const (
 	helloName   = "desktop-led-controller"
 	dialTimeout = 5 * time.Second
-	// UploadTimeout is the longest wait for an upload reply: a chunk is up to 16 cube records
-	// with a 1 s timeout and one retry each.
-	UploadTimeout = 40 * time.Second
+	// uploadChunk keeps each chunk message inside the Pico's 512-byte TCP receive buffer; its
+	// stack stalls when a larger message fills the window (tcp.MaxChunk is only the upper limit).
+	uploadChunk = 256
+	// UploadTimeout is the longest wait for an upload reply: a chunk is 2 cube records with a 1 s
+	// timeout and one retry each, the end needs the cube's "Show upload OK".
+	UploadTimeout = 15 * time.Second
 )
 
 var (
@@ -238,7 +241,7 @@ func (this *Client) upload(data []byte) error {
 		return err
 	}
 	for offset := 0; offset < len(data); {
-		end := min(offset+tcp.MaxChunk, len(data))
+		end := min(offset+uploadChunk, len(data))
 		if err := this.write(tcp.NewUploadChunk(uint32(offset), data[offset:end])); err != nil {
 			return err
 		}

@@ -45,7 +45,7 @@ func NewWindow(configFuncs ...WindowConfigFunc) *Window {
 }
 
 func (this *Window) Start() {
-	raylib.SetConfigFlags(raylib.FlagWindowResizable)
+	raylib.SetConfigFlags(raylib.FlagWindowResizable | raylib.FlagWindowHighdpi)
 	raylib.InitWindow(this.width, this.height, "Led Cube Controller")
 	raylib.SetTargetFPS(60)
 

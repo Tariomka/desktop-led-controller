@@ -110,13 +110,12 @@ func (this *CubeGrid) volume() (length, height, width int) {
 }
 
 func (this *CubeGrid) resetCamera() {
-	center := raylib.NewVector3(
-		float32(this.length-1)*voxelSpacing/2,
-		float32(this.height-1)*voxelSpacing/2,
-		float32(this.width-1)*voxelSpacing/2)
+	center := voxelPosition(this.length-1, this.height-1, this.width-1)
+	center = raylib.Vector3Scale(center, 0.5)
 	distance := float32(max(this.length, this.height, this.width, 1)) * voxelSpacing * 1.6
 	this.camera.Target = center
-	this.camera.Position = raylib.NewVector3(center.X+distance, center.Y+distance*0.8, center.Z+distance)
+	// In front of the z = 0 face, a little to the right and above, like the vendor simulator.
+	this.camera.Position = raylib.NewVector3(center.X+distance*0.6, center.Y+distance*0.6, center.Z+distance*1.4)
 }
 
 // forEachVoxel calls draw for every visible voxel; voxel is nil for preview voxels.
@@ -202,6 +201,8 @@ func forEachCell(length, height, width int, callback func(x, y, z, index int)) {
 	}
 }
 
+// voxelPosition maps show coordinates (y up, z = 0 is the front) to the 3-D view, where the
+// camera looks at the front along -Z.
 func voxelPosition(x, y, z int) raylib.Vector3 {
-	return raylib.NewVector3(float32(x)*voxelSpacing, float32(y)*voxelSpacing, float32(z)*voxelSpacing)
+	return raylib.NewVector3(float32(x)*voxelSpacing, float32(y)*voxelSpacing, -float32(z)*voxelSpacing)
 }
