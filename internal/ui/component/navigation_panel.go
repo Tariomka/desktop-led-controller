@@ -41,13 +41,13 @@ func (nav *NavigationPanel) Render() {
 				raylib.DrawRectangleRec(
 					bounds,
 					common.IntToRGBAExtended(
-						raygui.GetStyle(raygui.BUTTON, raygui.BASE_COLOR_PRESSED),
+						uint32(raygui.GetStyle(raygui.BUTTON, raygui.BASE_COLOR_PRESSED)),
 						125))
 				raylib.DrawRectangleLinesEx(
 					bounds,
 					float32(raygui.GetStyle(raygui.BUTTON, raygui.BORDER_WIDTH)),
 					common.IntToRGBAExtended(
-						raygui.GetStyle(raygui.BUTTON, raygui.BORDER_COLOR_PRESSED),
+						uint32(raygui.GetStyle(raygui.BUTTON, raygui.BORDER_COLOR_PRESSED)),
 						230))
 			}
 

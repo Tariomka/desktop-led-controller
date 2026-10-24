@@ -100,7 +100,7 @@ func defaultTypedPanel[Type Renderer]() Type {
 //	import rl "github.com/gen2brain/raylib-go/raylib"
 //	rl.InitWindow(...)
 func defaultRectangle() raylib.Rectangle {
-	panelWidth := float32(raylib.GetScreenWidth()) * style.PanelWidthCoeficient
+	panelWidth := float32(raylib.GetScreenWidth()) * style.PanelWidthCoefficient
 	return raylib.NewRectangle(
 		float32(raylib.GetScreenWidth())-panelWidth,
 		0,

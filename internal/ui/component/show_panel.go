@@ -101,7 +101,7 @@ func (this *ShowPanel) renderProject(layout *rowLayout) {
 		names = "(no saved projects)"
 	}
 	cells[0].Width = cells[0].Width*2 + layout.padding
-	this.projectIndex = raygui.ComboBox(cells[0], names, this.projectIndex)
+	raygui.ComboBox(cells[0], names, &this.projectIndex)
 	if button(cells[2], "Load", len(this.projects) == 0) {
 		global.SendMessage(constants.ServiceShow, models.LoadMessage{Name: this.projects[this.projectIndex]})
 	}
@@ -131,7 +131,7 @@ func (this *ShowPanel) renderUpload(layout *rowLayout) {
 
 	if this.uploading || this.uploadResult != "" {
 		bounds := layout.row(1)[0]
-		raygui.ProgressBar(bounds, "", "", float32(this.uploadAcked), 0, float32(max(this.uploadTotal, 1)))
+		progressBar(bounds, float32(this.uploadAcked), float32(max(this.uploadTotal, 1)))
 		if this.uploading {
 			layout.label(fmt.Sprintf("Uploading %d / %d bytes", this.uploadAcked, this.uploadTotal), style.TextColorNormal)
 		} else {
@@ -195,7 +195,7 @@ func (this *ShowPanel) renderPreview(layout *rowLayout) {
 	layout.label("Audio level", style.TextColorNormal)
 	bounds := layout.row(1)[0]
 	bounds.Width -= 30
-	preview.Level = int(raygui.SliderBar(bounds, "", strconv.Itoa(preview.Level), float32(preview.Level), 0, 63))
+	preview.Level = int(sliderBar(bounds, "", strconv.Itoa(preview.Level), float32(preview.Level), 0, 63))
 }
 
 func (this *ShowPanel) compile() {

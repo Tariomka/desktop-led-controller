@@ -90,8 +90,9 @@ func (this *MenuPanel) renderStatus() {
 	additionalXPadding := this.itemBounds.Width / 4
 	circleCenterXOffset := this.padding.X + this.itemBounds.Height/2
 	raylib.DrawCircleGradient(
-		int32(this.itemBounds.X+circleCenterXOffset+additionalXPadding),
-		int32(this.itemBounds.Y+this.padding.Y+this.itemBounds.Height/2),
+		raylib.NewVector2(
+			this.itemBounds.X+circleCenterXOffset+additionalXPadding,
+			this.itemBounds.Y+this.padding.Y+this.itemBounds.Height/2),
 		style.TextSize,
 		innerColor,
 		outerColor)
@@ -120,7 +121,7 @@ func (this *MenuPanel) renderConnect() {
 		buttonWidth,
 		this.itemBounds.Height)
 
-	this.retryToggle = raygui.CheckBox(toggleBounds, "Keep Retrying", this.retryToggle)
+	raygui.CheckBox(toggleBounds, "Keep Retrying", &this.retryToggle)
 
 	switch global.ConnectionStatus {
 	case global.Disconnect:
@@ -218,7 +219,7 @@ func (this *MenuPanel) renderControls() {
 	maxCartoon := max(this.status.Count, 1)
 	bounds = raylib.NewRectangle(this.X+this.padding.X, this.itemBounds.Y, width, height)
 	utils.RenderWithCondition(func() {
-		if raygui.Spinner(bounds, "", &this.cartoon, 1, maxCartoon, this.cartoonEdit) != 0 {
+		if raygui.Spinner(bounds, "", &this.cartoon, 1, maxCartoon, this.cartoonEdit) {
 			this.cartoonEdit = !this.cartoonEdit
 		}
 		bounds.X += width + this.padding.X

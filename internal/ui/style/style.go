@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	PanelWidthCoeficient    = float32(1) / 4
-	RendererWidthCoeficient = float32(3) / 4
+	PanelWidthCoefficient    = float32(1) / 4
+	RendererWidthCoefficient = float32(3) / 4
 )
 
 //go:embed style.rgs
@@ -29,7 +29,7 @@ var (
 
 // General text styling
 var (
-	WrapMode = int32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_WRAP_MODE))
+	WrapMode = raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_WRAP_MODE)
 
 	TextSize        = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_SIZE))
 	TextPadding     = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_PADDING))
@@ -77,7 +77,7 @@ func UpdateStyle() {
 	BorderWidth = float32(raygui.GetStyle(raygui.DEFAULT, raygui.BORDER_WIDTH))
 
 	// General text styling
-	WrapMode = int32(raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE))
+	WrapMode = raygui.GetStyle(raygui.LISTVIEW, raygui.TEXT_WRAP_MODE)
 	TextSize = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_SIZE))
 	TextPadding = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_PADDING))
 	TextSpacing = float32(raygui.GetStyle(raygui.DEFAULT, raygui.TEXT_SPACING))
@@ -109,7 +109,6 @@ func LoadStyle() {
 	// Base style
 	raygui.LoadStyleFromMemory(style)
 
-	// Updates, maybe set everything myself or create custom style seleretaly?
 	raygui.SetStyle(raygui.DEFAULT, raygui.BORDER_COLOR_FOCUSED, 0xff_00_00_7f)
 	raygui.SetStyle(raygui.DEFAULT, raygui.BASE_COLOR_FOCUSED, 0xff_00_00_2f)
 
@@ -124,16 +123,16 @@ func LoadStyle() {
 }
 
 func GetListBorderColor() color.RGBA {
-	return raylib.GetColor(uint(raygui.GetStyle(raygui.LISTVIEW, raygui.BORDER_COLOR_NORMAL+GuiState*3)))
+	return raygui.GetColor(raygui.LISTVIEW, raygui.BORDER_COLOR_NORMAL+raygui.PropertyID(GuiState*3))
 }
 
-func GetScrollbarStyle() (sliderSize int64, scrollSpeed int64) {
+func GetScrollbarStyle() (sliderSize, scrollSpeed raygui.PropertyValue) {
 	sliderSize = raygui.GetStyle(raygui.SCROLLBAR, raygui.SCROLL_SLIDER_SIZE)
 	scrollSpeed = raygui.GetStyle(raygui.SCROLLBAR, raygui.SCROLL_SPEED)
 	return sliderSize, scrollSpeed
 }
 
-func SetScrollbarStyle(sliderSize int64, scrollSpeed int64) {
+func SetScrollbarStyle(sliderSize, scrollSpeed raygui.PropertyValue) {
 	raygui.SetStyle(raygui.SCROLLBAR, raygui.SCROLL_SLIDER_SIZE, sliderSize)
 	raygui.SetStyle(raygui.SCROLLBAR, raygui.SCROLL_SPEED, scrollSpeed)
 }

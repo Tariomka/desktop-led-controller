@@ -202,8 +202,8 @@ func (this *ConsolePanel) renderScrollbar() {
 
 	prevSliderSize, prevScrollSpeed := style.GetScrollbarStyle()
 	style.SetScrollbarStyle(
-		int64(this.scrollbarSliderSize),
-		int64(this.messages.Length()-this.visibleLineCount))
+		raygui.PropertyValue(this.scrollbarSliderSize),
+		raygui.PropertyValue(this.messages.Length()-this.visibleLineCount))
 
 	scrollBarBounds := raylib.NewRectangle(
 		this.X+this.Width-style.ListBorderWidth-style.ListScrollWidth,

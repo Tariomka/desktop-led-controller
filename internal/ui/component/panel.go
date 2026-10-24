@@ -16,7 +16,7 @@ func (this *Panel) resize(additionalResizes ...func()) {
 	}
 
 	previousPosX, previousPosY := this.X, this.Y
-	panelWidth := float32(raylib.GetScreenWidth()) * style.PanelWidthCoeficient
+	panelWidth := float32(raylib.GetScreenWidth()) * style.PanelWidthCoefficient
 
 	if previousPosX > 0 {
 		this.Width = panelWidth

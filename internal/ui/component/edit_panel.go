@@ -70,7 +70,8 @@ func (this *EditPanel) Update() { this.resize() }
 func (this *EditPanel) Render() {
 	this.renderPanel()
 	layout := newRowLayout(this.Rectangle, this.padding)
-	tab := raygui.ToggleGroup(layout.row(4)[0], "Graph;Palette;Cartoon;Keys", this.tab)
+	tab := this.tab
+	raygui.ToggleGroup(layout.row(4)[0], "Graph;Palette;Cartoon;Keys", &tab)
 	if tab != this.tab {
 		this.tab, this.editing, this.scroll = tab, "", 0
 	}
@@ -114,7 +115,8 @@ func (this *EditPanel) valueBox(id string, bounds raylib.Rectangle, value *int, 
 // list draws a list view and returns the clicked item, or current when nothing was clicked.
 func (this *EditPanel) list(layout *rowLayout, rows int, names []string, current int) int {
 	bounds := layout.rowHeight(1, float32(rows)*(style.ListItemHeight+style.ListItemSpacing)+style.ListItemSpacing)[0]
-	active := raygui.ListView(bounds, strings.Join(names, ";"), &this.scroll, int32(current))
+	active := int32(current)
+	raygui.ListView(bounds, strings.Join(names, ";"), &this.scroll, &active)
 	if active < 0 || int(active) >= len(names) {
 		return current
 	}
@@ -180,26 +182,26 @@ func (this *EditPanel) renderGraph(layout *rowLayout) {
 	}
 
 	cells = layout.row(1)
-	global.ShouldPaint = raygui.CheckBox(
+	global.ShouldPaint = checkBox(
 		raylib.NewRectangle(cells[0].X, cells[0].Y, style.TextSize, style.TextSize),
 		"Paint with the left mouse button", global.ShouldPaint)
 	layout.label("Right mouse button rotates the view.", style.TextColorNormal)
 
 	cells = layout.row(1)
-	global.SelectedLayerState = global.LayerState(raygui.ComboBox(cells[0], "All;Layer;Column;Precise", int32(global.SelectedLayerState)))
+	global.SelectedLayerState = global.LayerState(comboBox(cells[0], "All;Layer;Column;Precise", int(global.SelectedLayerState)))
 	if global.SelectedLayerState == global.Layer || global.SelectedLayerState == global.Precise {
 		global.SelectedLayer = uint8(min(int(global.SelectedLayer), graph.H-1))
 		bounds := layout.row(1)[0]
 		bounds.X += 60
 		bounds.Width -= 90
-		global.SelectedLayer = uint8(raygui.Slider(bounds, "Layer y", strconv.Itoa(int(global.SelectedLayer)), float32(global.SelectedLayer), 0, float32(graph.H-1)))
+		global.SelectedLayer = uint8(slider(bounds, "Layer y", strconv.Itoa(int(global.SelectedLayer)), float32(global.SelectedLayer), 0, float32(graph.H-1)))
 	}
 	if global.SelectedLayerState == global.Column || global.SelectedLayerState == global.Precise {
 		global.SelectedColumn = uint8(min(int(global.SelectedColumn), graph.W-1))
 		bounds := layout.row(1)[0]
 		bounds.X += 60
 		bounds.Width -= 90
-		global.SelectedColumn = uint8(raygui.Slider(bounds, "Column z", strconv.Itoa(int(global.SelectedColumn)), float32(global.SelectedColumn), 0, float32(graph.W-1)))
+		global.SelectedColumn = uint8(slider(bounds, "Column z", strconv.Itoa(int(global.SelectedColumn)), float32(global.SelectedColumn), 0, float32(graph.W-1)))
 	}
 
 	cells = layout.row(2)
@@ -341,7 +343,7 @@ func (this *EditPanel) renderPalette(layout *rowLayout) {
 		bounds.X += 50
 		bounds.Width -= 80
 		level := value >> channel.shift & 3
-		level = byte(raygui.Slider(bounds, channel.name, strconv.Itoa(int(level)), float32(level), 0, 3) + 0.5)
+		level = byte(slider(bounds, channel.name, strconv.Itoa(int(level)), float32(level), 0, 3) + 0.5)
 		value = value&^(3<<channel.shift) | level<<channel.shift
 	}
 	palette.Colors[this.paletteSlot] = value
@@ -349,7 +351,8 @@ func (this *EditPanel) renderPalette(layout *rowLayout) {
 
 func (this *EditPanel) renderCartoon(layout *rowLayout) {
 	project := global.Project
-	group := raygui.ToggleGroup(layout.row(4)[0], "Group 1;Group 2;Group 3;Group 4", this.group)
+	group := this.group
+	raygui.ToggleGroup(layout.row(4)[0], "Group 1;Group 2;Group 3;Group 4", &group)
 	if group != this.group {
 		this.group, this.cartoon, this.editing, this.scroll = group, 0, "", 0
 	}
@@ -403,14 +406,14 @@ func (this *EditPanel) renderCartoon(layout *rowLayout) {
 	this.textBox("cartoon-name", layout.row(1)[0], &cartoon.Name, projectNameLength)
 
 	cells = layout.row(2)
-	cartoon.Enabled = raygui.CheckBox(
+	cartoon.Enabled = checkBox(
 		raylib.NewRectangle(cells[0].X, cells[0].Y, style.TextSize, style.TextSize),
 		"Enabled", cartoon.Enabled)
 	if cartoon.Type < 0 || cartoon.Type >= len(cartoonKinds) {
 		raygui.Label(cells[1], nameOf(cartoonKinds[:], cartoon.Type))
 		return
 	}
-	kind := int(raygui.ComboBox(cells[1], "Normal;Script;Audio", int32(cartoon.Type)))
+	kind := comboBox(cells[1], "Normal;Script;Audio", cartoon.Type)
 	if kind != cartoon.Type {
 		cartoon.Type = kind
 		if kind == blob.Audio {
@@ -459,7 +462,7 @@ func (this *EditPanel) renderKeys(layout *rowLayout) {
 		value := int32(config.Keys[key])
 		previous := value
 		id := "key-" + strconv.Itoa(key)
-		if raygui.Spinner(cells[1], "", &value, 0, len(keyFunctions)-1, this.editing == id) != 0 {
+		if raygui.Spinner(cells[1], "", &value, 0, len(keyFunctions)-1, this.editing == id) {
 			if this.editing == id {
 				this.editing = ""
 			} else {

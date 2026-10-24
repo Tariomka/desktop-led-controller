@@ -49,7 +49,7 @@ func NewCubeGrid() component.Renderer {
 func screenRectangle() raylib.Rectangle {
 	return raylib.NewRectangle(
 		0, 0,
-		float32(raylib.GetScreenWidth())*style.RendererWidthCoeficient,
+		float32(raylib.GetScreenWidth())*style.RendererWidthCoefficient,
 		float32(raylib.GetScreenHeight()))
 }
 

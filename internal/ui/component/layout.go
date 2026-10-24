@@ -59,3 +59,30 @@ func button(bounds raylib.Rectangle, text string, disabled bool) bool {
 	utils.RenderWithCondition(func() { clicked = raygui.Button(bounds, text) }, disabled)
 	return clicked && !disabled
 }
+
+// Value-returning wrappers of raygui's pointer-based controls.
+
+func comboBox(bounds raylib.Rectangle, text string, active int) int {
+	value := int32(active)
+	raygui.ComboBox(bounds, text, &value)
+	return int(value)
+}
+
+func checkBox(bounds raylib.Rectangle, text string, checked bool) bool {
+	raygui.CheckBox(bounds, text, &checked)
+	return checked
+}
+
+func slider(bounds raylib.Rectangle, textLeft, textRight string, value, minimum, maximum float32) float32 {
+	raygui.Slider(bounds, textLeft, textRight, &value, minimum, maximum)
+	return value
+}
+
+func sliderBar(bounds raylib.Rectangle, textLeft, textRight string, value, minimum, maximum float32) float32 {
+	raygui.SliderBar(bounds, textLeft, textRight, &value, minimum, maximum)
+	return value
+}
+
+func progressBar(bounds raylib.Rectangle, value, maximum float32) {
+	raygui.ProgressBar(bounds, "", "", &value, 0, maximum)
+}
