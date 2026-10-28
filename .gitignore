@@ -5,6 +5,9 @@
 bin/
 build/
 
+# Agent files
+.agent/
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -28,3 +31,6 @@ go.work.sum
 
 # env file
 .env
+
+# Exclusions
+!test/testdata/*.hex

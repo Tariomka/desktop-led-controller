@@ -1,4 +1,4 @@
-package common
+package data
 
 type RingBuffer[Type any] struct {
 	data     []Type

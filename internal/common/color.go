@@ -24,9 +24,17 @@ var (
 	ColorWhite  = raylib.NewColor(on, on, on, alpha)
 )
 
-func IntToRGBA(value int64) color.RGBA {
-	bytes := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bytes, uint64(value))
+// VoxelColor converts a cube color 0bRRGGBB (2 bits per channel) to a display color.
+func VoxelColor(value byte) color.RGBA {
+	if value&0x3F == 0 {
+		return ColorOff
+	}
+	return raylib.NewColor((value>>4&3)*85, (value>>2&3)*85, (value&3)*85, 200)
+}
+
+func IntToRGBA(value uint32) color.RGBA {
+	bytes := make([]byte, 4)
+	binary.LittleEndian.PutUint32(bytes, value)
 	return color.RGBA{
 		R: bytes[3],
 		G: bytes[2],
@@ -35,7 +43,7 @@ func IntToRGBA(value int64) color.RGBA {
 	}
 }
 
-func IntToRGBAExtended(value int64, alpha uint8) color.RGBA {
+func IntToRGBAExtended(value uint32, alpha uint8) color.RGBA {
 	base := IntToRGBA(value)
 	base.A = alpha
 	return base

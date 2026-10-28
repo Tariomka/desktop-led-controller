@@ -1,10 +1,7 @@
 package constants
 
 const (
-	TCPClient           = "tcp--client"
-	UIConsolePanel      = "ui--console--panel"
-	UIMenuPanel         = "ui--menu--panel"
-	UIEditPanel         = "ui--console--panel"
-	UICubeGrid          = "ui--cube--grid"
-	ServiceLedProcessor = "service--led--processor"
+	TCPClient   = "tcp--client"
+	UIApp       = "ui--app" // every message for the UI; dispatched on the UI goroutine
+	ServiceShow = "service--show"
 )
